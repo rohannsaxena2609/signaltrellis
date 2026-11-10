@@ -13,6 +13,12 @@ import java.util.UUID;
 
 public interface CommitmentRepository extends JpaRepository<Commitment, UUID> {
 
+    List<Commitment> findByWorkspaceIdAndStatusAndDueDateBeforeOrderByDueDateAscIdAsc(
+            UUID workspaceId, CommitmentStatus status, LocalDate date);
+
+    List<Commitment> findByWorkspaceIdAndStatusAndDueDateBetweenOrderByDueDateAscIdAsc(
+            UUID workspaceId, CommitmentStatus status, LocalDate from, LocalDate to);
+
     Page<Commitment> findByWorkspaceIdOrderByDueDateAscIdAsc(UUID workspaceId, Pageable pageable);
 
     Page<Commitment> findByWorkspaceIdAndStatusOrderByDueDateAscIdAsc(UUID workspaceId,

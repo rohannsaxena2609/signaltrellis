@@ -6,8 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
 import java.util.UUID;
+import java.util.List;
 
 public interface LifeEventRepository extends JpaRepository<LifeEvent, UUID> {
+    List<LifeEvent> findByWorkspaceIdAndStatusAndEventDateBetweenOrderByEventDateAscIdAsc(
+            UUID workspaceId, LifeEventStatus status, LocalDate from, LocalDate to);
+
     Page<LifeEvent> findByWorkspaceIdAndEventDateBetweenOrderByEventDateAscIdAsc(
             UUID workspaceId, LocalDate from, LocalDate to, Pageable pageable);
 }
