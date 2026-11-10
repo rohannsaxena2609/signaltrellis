@@ -1,6 +1,8 @@
 package com.signaltrellis.signals;
 
 import com.signaltrellis.context.Commitment;
+import com.signaltrellis.context.LifeEvent;
+import com.signaltrellis.context.LifeEventStatus;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -20,7 +22,7 @@ public class SignalRuleEngine {
     public List<SignalCandidate> evaluate(List<Commitment> overdueCommitments,
                                           List<Commitment> dueSoonCommitments,
                                           List<Commitment> clusterCommitments,
-                                          LocalDate today) {
+                                          List<LifeEvent> events, LocalDate today) {
         List<SignalCandidate> candidates = new ArrayList<>();
         for (Commitment commitment : overdueCommitments) {
             long days = ChronoUnit.DAYS.between(commitment.getDueDate(), today);
@@ -39,6 +41,22 @@ public class SignalRuleEngine {
                     "This open commitment is due " + timing + " (" + commitment.getDueDate() + ")."));
         }
         candidates.addAll(clusterSignals(clusterCommitments, today));
+        for (LifeEvent event : events) {
+            if (event.getStatus() != LifeEventStatus.SCHEDULED) continue;
+            long days = ChronoUnit.DAYS.between(today, event.getEventDate());
+            if (days < 0) {
+                candidates.add(eventSignal(event, SignalType.EVENT_MISSED, SignalPriority.MEDIUM,
+                        "Scheduled event passed: " + event.getTitle(),
+                        "This event was scheduled for " + event.getEventDate() + " and remains scheduled."));
+            } else {
+                SignalPriority priority = days <= 1 ? SignalPriority.HIGH
+                        : days <= 7 ? SignalPriority.MEDIUM : SignalPriority.LOW;
+                String timing = days == 0 ? "today" : days == 1 ? "tomorrow" : "in " + days + " days";
+                candidates.add(eventSignal(event, SignalType.EVENT_APPROACHING, priority,
+                        "Coming up: " + event.getTitle(),
+                        "This scheduled event is " + timing + " (" + event.getEventDate() + ")."));
+            }
+        }
         return candidates;
     }
 
@@ -61,12 +79,13 @@ public class SignalRuleEngine {
                 long daysToFirst = ChronoUnit.DAYS.between(today, first);
                 SignalPriority priority = group.size() >= 3 && daysToFirst <= 7
                         ? SignalPriority.HIGH : daysToFirst <= 7 ? SignalPriority.MEDIUM : SignalPriority.LOW;
+                String title = group.size() + " commitments due close together";
                 String explanation = "These open commitments are due between " + first + " and " + last
                         + ", with no more than three days between consecutive due dates.";
                 List<SignalCandidate.EvidenceCandidate> evidence = group.stream()
                         .map(this::commitmentEvidence).toList();
                 result.add(new SignalCandidate("payment-cluster:" + clusterHash(group), SignalType.PAYMENT_CLUSTER,
-                        priority, group.size() + " commitments due close together", explanation, evidence));
+                        priority, title, explanation, evidence));
             }
             start = end;
         }
@@ -76,7 +95,16 @@ public class SignalRuleEngine {
     private SignalCandidate commitmentSignal(Commitment commitment, String keyPrefix, SignalType type,
                                              SignalPriority priority, String title, String explanation) {
         return new SignalCandidate(keyPrefix + commitment.getId(), type, priority,
-                limit(title, 160), explanation, List.of(commitmentEvidence(commitment)));
+                limit(title, 160), explanation,
+                List.of(commitmentEvidence(commitment)));
+    }
+
+    private SignalCandidate eventSignal(LifeEvent event, SignalType type, SignalPriority priority,
+                                        String title, String explanation) {
+        var evidence = new SignalCandidate.EvidenceCandidate(SignalEvidenceType.EVENT, event.getId(), null,
+                "Scheduled life event", event.getTitle() + " — " + event.getEventDate());
+        return new SignalCandidate(type.name().toLowerCase() + ":" + event.getId(), type, priority,
+                limit(title, 160), explanation, List.of(evidence));
     }
 
     private SignalCandidate.EvidenceCandidate commitmentEvidence(Commitment commitment) {
