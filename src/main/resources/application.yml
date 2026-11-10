@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: signaltrellis
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/signaltrellis}
+    username: ${DATABASE_USERNAME:signaltrellis}
+    password: ${DATABASE_PASSWORD:local-dev-only}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
