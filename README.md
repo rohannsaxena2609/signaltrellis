@@ -63,6 +63,18 @@ All routes below require authentication and derive the workspace from the access
 
 Database composite foreign keys prevent relationships, events and commitments from pointing across workspace boundaries. PostgreSQL remains the graph store for this MVP.
 
+## Consequence signals
+
+Signal detection is deterministic Java business logic; no model-generated facts are used. `POST /api/v1/signals/recompute` evaluates the current workspace. The initial rule set detects overdue commitments, commitments due within seven days, clusters of open commitments with nearby due dates, scheduled events that passed within the last week, and events due within the next 30 days.
+
+Signals include priority, a plain-language reason and evidence rows linked to the event or commitment that triggered them. Stable workspace-scoped keys make recomputation idempotent. A signal stays dismissed while its rule still matches, resolves automatically when the rule stops matching, and reopens with history if it matches again later.
+
+- `GET /api/v1/signals?status=ACTIVE&priority=HIGH&type=COMMITMENT_OVERDUE` lists signals with filters.
+- `GET /api/v1/signals/{id}` returns signal details, evidence and status history; `/evidence` returns just its evidence.
+- `POST /api/v1/signals/{id}/dismiss` and `/resolve` record the user's decision.
+
+Recomputation is currently initiated through the API; background scheduling is a later reliability milestone.
+
 To stop PostgreSQL:
 
 ```sh

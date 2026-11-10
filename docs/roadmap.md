@@ -12,7 +12,9 @@
 - [x] Start the service against local PostgreSQL and apply migrations
 - [ ] Inspect the OpenAPI page in a browser
 
-## Milestone 2 — Identity and security (implementation in place; verification pending)
+Automated and real-request behavior testing for these implementation milestones is deferred to final verification, per the project workflow.
+
+## Milestone 2 — Identity and security (implementation in place; verification deferred)
 
 - [x] Registration and login endpoints
 - [x] BCrypt password hashing and password input guard
@@ -22,7 +24,7 @@
 - [ ] Unauthorized-access and registration-flow tests
 - [ ] Run against PostgreSQL and verify registration, login and protected-route behavior
 
-## Milestone 3 — Capture and document lifecycle (implementation in place; functional verification pending)
+## Milestone 3 — Capture and document lifecycle (implementation in place; verification deferred)
 
 - [x] Upload PDF, PNG and JPEG files with a 10 MB request limit
 - [x] Validate file signatures and matching filename extensions
@@ -34,7 +36,7 @@
 - [ ] Verify upload/search/download behavior with real requests
 - [ ] Add automated capture and workspace-isolation tests
 
-## Milestone 4 — Context graph, events and commitments (implementation in place; functional verification pending)
+## Milestone 4 — Context graph, events and commitments (implementation in place; verification deferred)
 
 - [x] Add typed life entities and case-insensitive duplicate prevention within each workspace
 - [x] Add directed entity relationships with database-enforced same-workspace endpoints
@@ -45,9 +47,21 @@
 - [ ] Verify entity isolation, graph traversal, event and commitment APIs with real requests
 - [ ] Add automated context, relationship and workspace-isolation tests
 
+## Milestone 5 — Deterministic consequence signals (implementation in place; verification deferred)
+
+- [x] Add rules for overdue and soon-due commitments, due-date clusters, missed events and approaching events
+- [x] Assign deterministic priorities and explainable rule messages
+- [x] Persist signals with idempotent workspace-scoped dedupe keys
+- [x] Attach event/commitment evidence using workspace-scoped foreign keys
+- [x] Reconcile active, dismissed and resolved states during recomputation
+- [x] Record detected, reopened, dismissed and resolved transitions in signal history
+- [x] Add authenticated list/filter/detail/evidence/dismiss/resolve/recompute endpoints
+- [x] Apply signal migrations and start the application against local PostgreSQL
+- [ ] Verify rule outcomes and lifecycle transitions during final verification
+- [ ] Add automated signal-rule and workspace-isolation tests during final verification
+
 ## Later milestones
 
-5. Deterministic signals with evidence.
 6. Action proposals, approval states, scheduling and audit.
 7. Document extraction with provenance and human correction.
 8. Evidence-backed retrieval and evaluation.

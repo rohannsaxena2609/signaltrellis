@@ -62,6 +62,15 @@ Planned modules:
 - Open and overdue commitment totals are deterministic Java/PostgreSQL calculations; overdue is derived from `status = OPEN` and `due_date < today`.
 - Every list and lookup is scoped by the authenticated workspace. Entity IDs supplied on event and commitment requests are checked against that workspace, and composite database constraints enforce the same boundary.
 
+## Deterministic consequence signals
+
+- Five rules evaluate current commitments and scheduled events: overdue commitments, commitments due within seven days, clusters of open commitments with neighboring due dates no more than three days apart, scheduled events missed in the prior seven days, and events approaching in the next 30 days.
+- Each rule candidate has a stable workspace-scoped deduplication key. A pessimistic lock on the workspace serializes recomputations and signal status transitions.
+- Recompute upserts current matches, refreshes their structured evidence, reopens resolved matches, and resolves active or dismissed signals whose rule no longer matches. Dismissed signals remain dismissed while still applicable.
+- Evidence rows reference the source event or commitment through composite workspace foreign keys. Explanations are generated from stored values and rule outcomes, not from an LLM.
+- `signal_history` records detection, reopening, dismissal and resolution with actor and timestamp. Repeated identical evaluations do not append redundant history rows.
+- Recompute currently runs on an authenticated API request. Scheduling, event publication and asynchronous delivery remain later work.
+
 ## API error contract
 
 Errors use a stable JSON shape with timestamp, HTTP status, machine-readable code, safe message, request path and optional field errors. Unexpected exceptions do not expose stack traces or internal exception messages.
