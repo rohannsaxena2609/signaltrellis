@@ -14,9 +14,15 @@ spring:
         default_schema: app
   flyway:
     enabled: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
 
 server:
   port: ${SERVER_PORT:8080}
+  tomcat:
+    max-swallow-size: 11MB
 
 management:
   endpoints:
@@ -33,4 +39,8 @@ security:
     # Local development key only. Set SIGNALTRELLIS_JWT_SECRET in every deployed environment.
     secret: ${SIGNALTRELLIS_JWT_SECRET:U2lnbmFsVHJlbGxpc0xvY2FsRGV2U2VjcmV0MTIzNDU2Nzg5MA==}
     expiration: PT15M
+
+storage:
+  documents:
+    directory: ${SIGNALTRELLIS_DOCUMENT_STORAGE:./.data/documents}
 
