@@ -3,6 +3,8 @@ package com.signaltrellis.capture;
 import com.signaltrellis.identity.AuthenticatedUser;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -29,9 +31,11 @@ import java.util.UUID;
 public class CaptureController {
 
     private final DocumentService documents;
+    private final DocumentExtractionService extractions;
 
-    public CaptureController(DocumentService documents) {
+    public CaptureController(DocumentService documents, DocumentExtractionService extractions) {
         this.documents = documents;
+        this.extractions = extractions;
     }
 
     @PostMapping(path = "/capture/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -88,6 +92,30 @@ public class CaptureController {
                 .body(new InputStreamResource(download.content()));
     }
 
+    @PostMapping("/documents/{id}/extract")
+    public DocumentExtractionService.ExtractionResponse extract(@AuthenticationPrincipal AuthenticatedUser user,
+                                                                 @PathVariable UUID id) {
+        return extractions.extract(user.workspaceId(), id);
+    }
+
+    @GetMapping("/documents/{id}/extraction")
+    public DocumentExtractionService.ExtractionResponse extraction(@AuthenticationPrincipal AuthenticatedUser user,
+                                                                    @PathVariable UUID id) {
+        return extractions.get(user.workspaceId(), id);
+    }
+
+    @PatchMapping("/documents/{documentId}/extraction/facts/{factId}")
+    public DocumentExtractionService.FactResponse reviewFact(@AuthenticationPrincipal AuthenticatedUser user,
+                                                              @PathVariable UUID documentId,
+                                                              @PathVariable UUID factId,
+                                                              @Valid @RequestBody FactReviewRequest request) {
+        return extractions.review(user.workspaceId(), documentId, user.id(), factId,
+                new DocumentExtractionService.ReviewRequest(request.status(), request.correctedValue()));
+    }
+
     public record CategoryRequest(@NotBlank String category) {
     }
+
+    public record FactReviewRequest(@NotNull FactReviewStatus status,
+                                    @Size(max = 1000) String correctedValue) { }
 }
