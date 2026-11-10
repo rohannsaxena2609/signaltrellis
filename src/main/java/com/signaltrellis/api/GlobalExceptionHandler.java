@@ -19,6 +19,9 @@ import com.signaltrellis.signals.InvalidSignalTransitionException;
 import com.signaltrellis.signals.SignalNotFoundException;
 import com.signaltrellis.identity.EmailAlreadyRegisteredException;
 import com.signaltrellis.identity.PasswordTooLongException;
+import com.signaltrellis.actions.ActionConflictException;
+import com.signaltrellis.actions.ActionRecordNotFoundException;
+import com.signaltrellis.actions.InvalidActionRequestException;
 
 import java.time.Instant;
 import java.util.Map;
@@ -26,6 +29,27 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ActionRecordNotFoundException.class)
+    public ResponseEntity<ApiError> handleActionNotFound(ActionRecordNotFoundException exception,
+                                                          HttpServletRequest request) {
+        return error(HttpStatus.NOT_FOUND, "ACTION_RECORD_NOT_FOUND", "Action proposal not found",
+                request.getRequestURI(), Map.of());
+    }
+
+    @ExceptionHandler(ActionConflictException.class)
+    public ResponseEntity<ApiError> handleActionConflict(ActionConflictException exception,
+                                                          HttpServletRequest request) {
+        return error(HttpStatus.CONFLICT, "ACTION_CONFLICT", exception.getMessage(),
+                request.getRequestURI(), Map.of());
+    }
+
+    @ExceptionHandler(InvalidActionRequestException.class)
+    public ResponseEntity<ApiError> handleInvalidAction(InvalidActionRequestException exception,
+                                                         HttpServletRequest request) {
+        return error(HttpStatus.BAD_REQUEST, "INVALID_ACTION_REQUEST", exception.getMessage(),
+                request.getRequestURI(), Map.of());
+    }
 
     @ExceptionHandler(SignalNotFoundException.class)
     public ResponseEntity<ApiError> handleSignalNotFound(SignalNotFoundException exception,
