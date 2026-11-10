@@ -3,12 +3,14 @@ package com.signaltrellis.api;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import com.signaltrellis.capture.DocumentNotFoundException;
+import com.signaltrellis.capture.InvalidDocumentException;
 import com.signaltrellis.identity.EmailAlreadyRegisteredException;
 import com.signaltrellis.identity.PasswordTooLongException;
 
@@ -18,6 +20,34 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(DocumentNotFoundException.class)
+    public ResponseEntity<ApiError> handleDocumentNotFound(DocumentNotFoundException exception,
+                                                            HttpServletRequest request) {
+        return error(HttpStatus.NOT_FOUND, "DOCUMENT_NOT_FOUND", "Document not found",
+                request.getRequestURI(), Map.of());
+    }
+
+    @ExceptionHandler(InvalidDocumentException.class)
+    public ResponseEntity<ApiError> handleInvalidDocument(InvalidDocumentException exception,
+                                                           HttpServletRequest request) {
+        return error(HttpStatus.BAD_REQUEST, "INVALID_DOCUMENT_REQUEST", exception.getMessage(),
+                request.getRequestURI(), Map.of());
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleUploadTooLarge(MaxUploadSizeExceededException exception,
+                                                          HttpServletRequest request) {
+        return error(HttpStatus.PAYLOAD_TOO_LARGE, "UPLOAD_TOO_LARGE", "File exceeds the 10 MB upload limit",
+                request.getRequestURI(), Map.of());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException exception,
+                                                        HttpServletRequest request) {
+        return error(HttpStatus.BAD_REQUEST, "INVALID_PARAMETER", "A request parameter has an invalid value",
+                request.getRequestURI(), Map.of(exception.getName(), "Invalid value"));
+    }
 
     @ExceptionHandler(EmailAlreadyRegisteredException.class)
     public ResponseEntity<ApiError> handleDuplicateEmail(EmailAlreadyRegisteredException exception,
