@@ -44,3 +44,8 @@ storage:
   documents:
     directory: ${SIGNALTRELLIS_DOCUMENT_STORAGE:./.data/documents}
 
+signaltrellis:
+  ocr:
+    tesseract-path: ${SIGNALTRELLIS_TESSERACT_PATH:tesseract}
+    languages: ${SIGNALTRELLIS_OCR_LANGUAGES:eng}
+

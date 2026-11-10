@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.signaltrellis.capture.DocumentNotFoundException;
 import com.signaltrellis.capture.InvalidDocumentException;
+import com.signaltrellis.capture.OcrUnavailableException;
 import com.signaltrellis.context.ContextRecordNotFoundException;
 import com.signaltrellis.context.DuplicateContextRecordException;
 import com.signaltrellis.context.InvalidContextRequestException;
@@ -29,6 +30,13 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(OcrUnavailableException.class)
+    public ResponseEntity<ApiError> handleOcrUnavailable(OcrUnavailableException exception,
+                                                          HttpServletRequest request) {
+        return error(HttpStatus.SERVICE_UNAVAILABLE, "OCR_UNAVAILABLE", exception.getMessage(),
+                request.getRequestURI(), Map.of());
+    }
 
     @ExceptionHandler(ActionRecordNotFoundException.class)
     public ResponseEntity<ApiError> handleActionNotFound(ActionRecordNotFoundException exception,
