@@ -14,6 +14,8 @@ import com.signaltrellis.capture.InvalidDocumentException;
 import com.signaltrellis.context.ContextRecordNotFoundException;
 import com.signaltrellis.context.DuplicateContextRecordException;
 import com.signaltrellis.context.InvalidContextRequestException;
+import com.signaltrellis.signals.InvalidSignalRequestException;
+import com.signaltrellis.signals.SignalNotFoundException;
 import com.signaltrellis.identity.EmailAlreadyRegisteredException;
 import com.signaltrellis.identity.PasswordTooLongException;
 
@@ -23,6 +25,20 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(SignalNotFoundException.class)
+    public ResponseEntity<ApiError> handleSignalNotFound(SignalNotFoundException exception,
+                                                          HttpServletRequest request) {
+        return error(HttpStatus.NOT_FOUND, "SIGNAL_NOT_FOUND", "Signal not found",
+                request.getRequestURI(), Map.of());
+    }
+
+    @ExceptionHandler(InvalidSignalRequestException.class)
+    public ResponseEntity<ApiError> handleSignalRequest(InvalidSignalRequestException exception,
+                                                         HttpServletRequest request) {
+        return error(HttpStatus.BAD_REQUEST, "INVALID_SIGNAL_REQUEST", exception.getMessage(),
+                request.getRequestURI(), Map.of());
+    }
 
     @ExceptionHandler(ContextRecordNotFoundException.class)
     public ResponseEntity<ApiError> handleContextNotFound(ContextRecordNotFoundException exception,
