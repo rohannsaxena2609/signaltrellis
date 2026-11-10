@@ -34,9 +34,19 @@
 - [ ] Verify upload/search/download behavior with real requests
 - [ ] Add automated capture and workspace-isolation tests
 
+## Milestone 4 — Context graph, events and commitments (implementation in place; functional verification pending)
+
+- [x] Add typed life entities and case-insensitive duplicate prevention within each workspace
+- [x] Add directed entity relationships with database-enforced same-workspace endpoints
+- [x] Add bounded graph traversal with depth/node limits and truncation indicator
+- [x] Add dated life events, timeline and upcoming queries
+- [x] Add commitments with decimal amounts, currency pairing, due dates and open/overdue summary
+- [x] Apply context migrations and start the application against local PostgreSQL
+- [ ] Verify entity isolation, graph traversal, event and commitment APIs with real requests
+- [ ] Add automated context, relationship and workspace-isolation tests
+
 ## Later milestones
 
-4. Context entities, relationships, events and commitments.
 5. Deterministic signals with evidence.
 6. Action proposals, approval states, scheduling and audit.
 7. Document extraction with provenance and human correction.

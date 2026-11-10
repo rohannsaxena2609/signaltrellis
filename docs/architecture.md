@@ -53,6 +53,15 @@ Planned modules:
 - Persist the file before metadata in one request and remove it if the database transaction fails. A process crash between those operations can leave an orphaned local file; a cleanup job can be added with asynchronous processing later.
 - Local filesystem storage is the development adapter. A later deployment can replace it with private object storage without exposing storage keys to the API.
 
+## Personal context graph and timeline
+
+- Store life entities and directed relationships in PostgreSQL. Relationship endpoints use composite foreign keys containing `workspace_id`, so the database rejects cross-workspace edges even if an application check is missed.
+- Relationship traversal is undirected for exploration, capped at depth 3 and at a caller-selected node limit (maximum 200); responses indicate truncation.
+- Events use calendar dates and may link to a workspace-owned entity.
+- Commitments use `NUMERIC(14,2)` for amounts, optional ISO-style three-letter currency codes, and a required due date. Amount and currency must be provided together.
+- Open and overdue commitment totals are deterministic Java/PostgreSQL calculations; overdue is derived from `status = OPEN` and `due_date < today`.
+- Every list and lookup is scoped by the authenticated workspace. Entity IDs supplied on event and commitment requests are checked against that workspace, and composite database constraints enforce the same boundary.
+
 ## API error contract
 
 Errors use a stable JSON shape with timestamp, HTTP status, machine-readable code, safe message, request path and optional field errors. Unexpected exceptions do not expose stack traces or internal exception messages.

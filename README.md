@@ -51,6 +51,18 @@ All document routes require the bearer token. `POST /api/v1/capture/upload` acce
 
 The initial processing status is `UPLOADED`. Extraction and background processing are later milestones.
 
+## Personal context API
+
+All routes below require authentication and derive the workspace from the access token. Entities are typed records such as products, vendors, subscriptions and policies. Relationships connect two entities and can be traversed from an entity with a bounded graph depth and node count.
+
+- `POST /api/v1/context/entities`, `GET /api/v1/context/entities?type=PRODUCT&query=laptop`, and `GET /api/v1/context/entities/{id}` manage and search context entities.
+- `POST /api/v1/context/relationships` connects two entities; `DELETE /api/v1/context/relationships/{id}` removes a connection.
+- `GET /api/v1/context/entities/{id}/connections?depth=2&limit=50` traverses connected records. Depth is limited to 3 and the response marks capped results with `truncated: true`.
+- `POST /api/v1/events`, `GET /api/v1/events/timeline`, and `GET /api/v1/events/upcoming` manage dated personal events.
+- `POST /api/v1/commitments`, `GET /api/v1/commitments`, and `GET /api/v1/commitments/summary` manage obligations. Monetary totals use decimal values and are grouped by currency; overdue status is derived from an open commitment's due date.
+
+Database composite foreign keys prevent relationships, events and commitments from pointing across workspace boundaries. PostgreSQL remains the graph store for this MVP.
+
 To stop PostgreSQL:
 
 ```sh
