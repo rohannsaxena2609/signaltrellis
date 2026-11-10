@@ -4,6 +4,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -11,6 +13,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface StoredDocumentRepository extends JpaRepository<StoredDocument, UUID> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @EntityGraph(attributePaths = "sourceItem")
+    Optional<StoredDocument> findForUpdateByIdAndSourceItem_WorkspaceId(UUID id, UUID workspaceId);
 
     @EntityGraph(attributePaths = "sourceItem")
     Optional<StoredDocument> findByIdAndSourceItem_WorkspaceId(UUID id, UUID workspaceId);
