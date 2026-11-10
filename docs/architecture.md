@@ -18,6 +18,13 @@ Planned modules:
 - AI-assisted retrieval and recommendations
 - Action proposals, approvals and audit trail
 
+## Approval-controlled actions
+
+- A proposal is workspace-scoped, idempotent by client key, and has a bounded approval window.
+- Only an authenticated user's explicit approval creates an in-app reminder schedule. Rejections and automatic expiry do not create reminders.
+- Proposal state transitions are serialized by the workspace lock and proposal lock, while approval, reminder and audit rows carry composite workspace constraints.
+- A scheduled local job expires pending proposals and records a system-authored audit event. Outbound notifications and autonomous action execution are outside this milestone.
+
 ## Key invariants
 
 1. A signal must have inspectable evidence and a deterministic reason.

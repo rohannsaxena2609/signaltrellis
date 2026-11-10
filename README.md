@@ -75,6 +75,17 @@ Signals include priority, a plain-language reason and evidence rows linked to th
 
 Recomputation is currently initiated through the API; background scheduling is a later reliability milestone.
 
+## Action proposals and reminders
+
+All action routes require authentication and use the caller's workspace from the bearer token. A proposal can schedule an in-app reminder and may optionally reference an active signal. Creating a proposal never schedules the reminder immediately; the user must approve it before a reminder record is created. Pending proposals expire automatically after their approval window. Decisions, expiry and reminder scheduling are recorded in the action history.
+
+- `POST /api/v1/actions/proposals` creates a reminder proposal. Include an `Idempotency-Key` header and JSON fields `title`, `scheduledFor`, `expiresAt`, and optional `signalId` and `details`.
+- `GET /api/v1/actions/pending` lists proposals awaiting approval; `GET /api/v1/actions` lists all proposals; `GET /api/v1/actions/{id}` returns proposal details, decision, reminder and history.
+- `POST /api/v1/actions/{id}/approve` records approval and schedules the in-app reminder. `POST /api/v1/actions/{id}/reject` records rejection. Both accept an optional `{ "reason": "..." }` body.
+- `GET /api/v1/actions/history` lists workspace audit events.
+
+The current reminder milestone persists an in-app reminder schedule only. It does not send notifications or let an AI system execute actions.
+
 To stop PostgreSQL:
 
 ```sh

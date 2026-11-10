@@ -62,7 +62,20 @@ Automated and real-request behavior testing for these implementation milestones 
 
 ## Later milestones
 
-6. Action proposals, approval states, scheduling and audit.
+## Milestone 6 — Approval-controlled reminder actions (implementation in place; verification deferred)
+
+- [x] Add workspace-owned action proposals with idempotency-key request matching
+- [x] Require explicit approve/reject decisions before creating a reminder schedule
+- [x] Persist in-app reminder records only after approval
+- [x] Audit proposal, decision, expiry and scheduling events
+- [x] Expire pending proposals with a scheduled local job
+- [x] Add authenticated proposal, pending, decision, detail and history APIs
+- [x] Apply action migrations and start the application against local PostgreSQL
+- [ ] Verify approval, idempotency, expiry and workspace-isolation behavior during final verification
+- [ ] Add automated action workflow tests during final verification
+
+## Later milestones
+
 7. Document extraction with provenance and human correction.
 8. Evidence-backed retrieval and evaluation.
 9. Tool-using assistant and MCP integration with approval checks.
