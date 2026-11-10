@@ -7,7 +7,7 @@ SignalTrellis connects personal records, commitments and events into a context g
 
 ## Current milestone
 
-Milestone 1 establishes a running Java backend, PostgreSQL with Flyway, consistent API errors, and OpenAPI documentation. Authentication, document ingestion, graph features and AI integrations are planned milestones and are not implemented yet.
+Milestone 1 laid down the Java backend, PostgreSQL with Flyway, consistent API errors, and OpenAPI documentation. Milestone 2 adds account registration, login, short-lived JWTs and a personal workspace. Document ingestion, graph features and AI integrations are later milestones.
 
 ## Technology
 
@@ -28,7 +28,17 @@ docker compose up -d postgres
 mvn spring-boot:run
 ```
 
+PostgreSQL is published on host port `5433` to avoid colliding with an existing local PostgreSQL service.
+
 The API listens on `http://localhost:8080`. OpenAPI UI is at `http://localhost:8080/swagger-ui.html`; the OpenAPI document is at `/v3/api-docs`. The initial migration creates the application schema. No AI provider credentials are required for this milestone.
+
+## Authentication API
+
+- `POST /api/v1/auth/register` — create an account and its Personal workspace.
+- `POST /api/v1/auth/login` — exchange email and password for a 15 minute bearer token.
+- `GET /api/v1/auth/me` — return the authenticated user's identity and workspace; requires `Authorization: Bearer <token>`.
+
+Set `SIGNALTRELLIS_JWT_SECRET` to a Base64-encoded key of at least 32 bytes before deployment. The checked-in fallback is only for local development. Passwords use BCrypt; input is limited to 72 UTF-8 bytes to avoid BCrypt's truncation behavior. Account data and workspaces are isolated by UUID ownership; feature endpoints must continue to enforce the token's workspace ID when they are added.
 
 To stop PostgreSQL:
 

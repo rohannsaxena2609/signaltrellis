@@ -34,6 +34,15 @@ Planned modules:
 - OpenAPI UI for interactive API inspection.
 - One deployable application; AI, Kafka, Redis and authentication arrive in later milestones.
 
+## Identity and authentication
+
+- Normalize email addresses to lowercase before storage and lookup.
+- Store BCrypt password hashes only; never return hashes from API responses.
+- Keep access tokens stateless, signed and short-lived (15 minutes); do not store bearer tokens in the database.
+- Registration creates a user and an owned Personal workspace in one transaction.
+- Put user and workspace UUIDs into the signed token. Protected feature services must scope every query to the authenticated workspace.
+- The configured fallback signing key is for local development only; deployment must provide `SIGNALTRELLIS_JWT_SECRET`.
+
 ## API error contract
 
 Errors use a stable JSON shape with timestamp, HTTP status, machine-readable code, safe message, request path and optional field errors. Unexpected exceptions do not expose stack traces or internal exception messages.
