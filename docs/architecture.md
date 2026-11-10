@@ -60,6 +60,12 @@ Planned modules:
 - Persist the file before metadata in one request and remove it if the database transaction fails. A process crash between those operations can leave an orphaned local file; a cleanup job can be added with asynchronous processing later.
 - Local filesystem storage is the development adapter. A later deployment can replace it with private object storage without exposing storage keys to the API.
 
+## Document extraction and fact review
+
+- The local PDFBox extractor stores page text and candidate facts separately from the source document. Each candidate references an extraction, page number and excerpt, preserving inspectable provenance.
+- Date and amount matches are candidates, not verified facts. They remain pending until a workspace owner confirms, corrects or rejects them; corrections retain the original extracted value and record reviewer and time.
+- This provider-free extraction stage does not perform OCR or call an LLM. Model-backed extraction and OCR are separate additions so API credentials, cost and confidence calibration can be handled explicitly.
+
 ## Personal context graph and timeline
 
 - Store life entities and directed relationships in PostgreSQL. Relationship endpoints use composite foreign keys containing `workspace_id`, so the database rejects cross-workspace edges even if an application check is missed.

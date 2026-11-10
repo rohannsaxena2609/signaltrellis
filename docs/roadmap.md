@@ -60,8 +60,6 @@ Automated and real-request behavior testing for these implementation milestones 
 - [ ] Verify rule outcomes and lifecycle transitions during final verification
 - [ ] Add automated signal-rule and workspace-isolation tests during final verification
 
-## Later milestones
-
 ## Milestone 6 — Approval-controlled reminder actions (implementation in place; verification deferred)
 
 - [x] Add workspace-owned action proposals with idempotency-key request matching
@@ -74,9 +72,20 @@ Automated and real-request behavior testing for these implementation milestones 
 - [ ] Verify approval, idempotency, expiry and workspace-isolation behavior during final verification
 - [ ] Add automated action workflow tests during final verification
 
+## Milestone 7 — Document extraction and human review (local foundation in place; AI/OCR deferred)
+
+- [x] Extract per-page text from uploaded PDFs using local Apache PDFBox
+- [x] Persist page-level text with extraction and workspace provenance
+- [x] Identify date and amount candidates with source-page excerpts
+- [x] Add human confirm, correct and reject review states with reviewer/timestamp
+- [x] Add authenticated extraction and review endpoints
+- [ ] Add OCR for scanned PDFs and image uploads
+- [ ] Add provider-backed structured LLM extraction after API credentials are configured
+- [ ] Connect confirmed facts to context graph records
+- [ ] Verify extraction and review behavior and add automated tests during final verification
+
 ## Later milestones
 
-7. Document extraction with provenance and human correction.
 8. Evidence-backed retrieval and evaluation.
 9. Tool-using assistant and MCP integration with approval checks.
 10. Asynchronous processing, outbox, retries and observability where justified.

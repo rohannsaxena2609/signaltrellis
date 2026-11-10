@@ -86,6 +86,12 @@ All action routes require authentication and use the caller's workspace from the
 
 The current reminder milestone persists an in-app reminder schedule only. It does not send notifications or let an AI system execute actions.
 
+## Document extraction and review
+
+`POST /api/v1/documents/{id}/extract` extracts text from a PDF locally and returns per-page text plus date and amount candidates with page excerpts. `GET /api/v1/documents/{id}/extraction` retrieves the latest extraction. Use `PATCH /api/v1/documents/{documentId}/extraction/facts/{factId}` with a review status of `CONFIRMED`, `CORRECTED` or `REJECTED`; corrected candidates require `correctedValue`. Candidate values are untrusted suggestions and stay separate from context records until a human confirms them.
+
+This local step supports text-based PDFs and does not call an AI provider. Scanned-PDF/image OCR, structured model extraction and context-graph writes are deferred until the AI credentials and later review flow are configured.
+
 To stop PostgreSQL:
 
 ```sh
