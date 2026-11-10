@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.signaltrellis.capture.DocumentNotFoundException;
 import com.signaltrellis.capture.InvalidDocumentException;
+import com.signaltrellis.context.ContextRecordNotFoundException;
+import com.signaltrellis.context.DuplicateContextRecordException;
+import com.signaltrellis.context.InvalidContextRequestException;
 import com.signaltrellis.identity.EmailAlreadyRegisteredException;
 import com.signaltrellis.identity.PasswordTooLongException;
 
@@ -20,6 +23,27 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ContextRecordNotFoundException.class)
+    public ResponseEntity<ApiError> handleContextNotFound(ContextRecordNotFoundException exception,
+                                                           HttpServletRequest request) {
+        return error(HttpStatus.NOT_FOUND, "CONTEXT_RECORD_NOT_FOUND", "Context record not found",
+                request.getRequestURI(), Map.of());
+    }
+
+    @ExceptionHandler(DuplicateContextRecordException.class)
+    public ResponseEntity<ApiError> handleDuplicateContext(DuplicateContextRecordException exception,
+                                                            HttpServletRequest request) {
+        return error(HttpStatus.CONFLICT, "DUPLICATE_CONTEXT_RECORD", exception.getMessage(),
+                request.getRequestURI(), Map.of());
+    }
+
+    @ExceptionHandler(InvalidContextRequestException.class)
+    public ResponseEntity<ApiError> handleInvalidContext(InvalidContextRequestException exception,
+                                                         HttpServletRequest request) {
+        return error(HttpStatus.BAD_REQUEST, "INVALID_CONTEXT_REQUEST", exception.getMessage(),
+                request.getRequestURI(), Map.of());
+    }
 
     @ExceptionHandler(DocumentNotFoundException.class)
     public ResponseEntity<ApiError> handleDocumentNotFound(DocumentNotFoundException exception,
