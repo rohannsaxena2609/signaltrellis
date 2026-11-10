@@ -15,6 +15,7 @@ import com.signaltrellis.context.ContextRecordNotFoundException;
 import com.signaltrellis.context.DuplicateContextRecordException;
 import com.signaltrellis.context.InvalidContextRequestException;
 import com.signaltrellis.signals.InvalidSignalRequestException;
+import com.signaltrellis.signals.InvalidSignalTransitionException;
 import com.signaltrellis.signals.SignalNotFoundException;
 import com.signaltrellis.identity.EmailAlreadyRegisteredException;
 import com.signaltrellis.identity.PasswordTooLongException;
@@ -30,6 +31,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleSignalNotFound(SignalNotFoundException exception,
                                                           HttpServletRequest request) {
         return error(HttpStatus.NOT_FOUND, "SIGNAL_NOT_FOUND", "Signal not found",
+                request.getRequestURI(), Map.of());
+    }
+
+    @ExceptionHandler(InvalidSignalTransitionException.class)
+    public ResponseEntity<ApiError> handleSignalTransition(InvalidSignalTransitionException exception,
+                                                            HttpServletRequest request) {
+        return error(HttpStatus.CONFLICT, "INVALID_SIGNAL_TRANSITION", exception.getMessage(),
                 request.getRequestURI(), Map.of());
     }
 

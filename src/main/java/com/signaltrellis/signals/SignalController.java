@@ -49,4 +49,16 @@ public class SignalController {
                                                           @PathVariable UUID id) {
         return signals.getEvidence(user.workspaceId(), id);
     }
+
+    @PostMapping("/{id}/dismiss")
+    public SignalService.SignalResponse dismiss(@AuthenticationPrincipal AuthenticatedUser user,
+                                                 @PathVariable UUID id) {
+        return signals.dismiss(user.workspaceId(), id, user.id());
+    }
+
+    @PostMapping("/{id}/resolve")
+    public SignalService.SignalResponse resolve(@AuthenticationPrincipal AuthenticatedUser user,
+                                                 @PathVariable UUID id) {
+        return signals.resolve(user.workspaceId(), id, user.id());
+    }
 }
