@@ -2,13 +2,16 @@ spring:
   application:
     name: signaltrellis
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/signaltrellis}
+    url: ${DATABASE_URL:jdbc:postgresql://127.0.0.1:5433/signaltrellis}
     username: ${DATABASE_USERNAME:signaltrellis}
     password: ${DATABASE_PASSWORD:local-dev-only}
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+    properties:
+      hibernate:
+        default_schema: app
   flyway:
     enabled: true
 
@@ -24,4 +27,10 @@ management:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+security:
+  jwt:
+    # Local development key only. Set SIGNALTRELLIS_JWT_SECRET in every deployed environment.
+    secret: ${SIGNALTRELLIS_JWT_SECRET:U2lnbmFsVHJlbGxpc0xvY2FsRGV2U2VjcmV0MTIzNDU2Nzg5MA==}
+    expiration: PT15M
 

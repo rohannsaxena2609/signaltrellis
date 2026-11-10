@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: signaltrellis
       POSTGRES_PASSWORD: local-dev-only
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - signaltrellis-postgres:/var/lib/postgresql/data
     healthcheck:
