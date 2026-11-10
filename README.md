@@ -7,7 +7,7 @@ SignalTrellis connects personal records, commitments and events into a context g
 
 ## Current milestone
 
-Milestone 1 laid down the Java backend, PostgreSQL with Flyway, consistent API errors, and OpenAPI documentation. Milestone 2 adds account registration, login, short-lived JWTs and a personal workspace. Document ingestion, graph features and AI integrations are later milestones.
+Milestones 1–2 provide the Java backend, PostgreSQL with Flyway, API error handling, registration/login, short-lived JWTs and personal workspaces. Milestone 3 adds authenticated document capture, local file storage and workspace-scoped document metadata/search.
 
 ## Technology
 
@@ -39,6 +39,17 @@ The API listens on `http://localhost:8080`. OpenAPI UI is at `http://localhost:8
 - `GET /api/v1/auth/me` — return the authenticated user's identity and workspace; requires `Authorization: Bearer <token>`.
 
 Set `SIGNALTRELLIS_JWT_SECRET` to a Base64-encoded key of at least 32 bytes before deployment. The checked-in fallback is only for local development. Passwords use BCrypt; input is limited to 72 UTF-8 bytes to avoid BCrypt's truncation behavior. Account data and workspaces are isolated by UUID ownership; feature endpoints must continue to enforce the token's workspace ID when they are added.
+
+## Capture and document API
+
+All document routes require the bearer token. `POST /api/v1/capture/upload` accepts `file` and optional `category` multipart fields. The service accepts PDF, PNG and JPEG files up to 10 MB, verifies the file signature and extension, stores content under a generated UUID, and records the detected media type, size and SHA-256 checksum. Files live outside the repository in `.data/documents` by default; set `SIGNALTRELLIS_DOCUMENT_STORAGE` to change the directory.
+
+- `GET /api/v1/documents?query=invoice&category=PURCHASE&status=UPLOADED` searches only the authenticated user's workspace.
+- `GET /api/v1/capture/inbox` lists documents that have not reached `PROCESSED` status.
+- `GET /api/v1/documents/{id}` returns metadata; `GET /api/v1/documents/{id}/content` downloads the file as an attachment.
+- `PATCH /api/v1/documents/{id}/category` changes the category. Supported values are `UNCATEGORIZED`, `FINANCIAL`, `PURCHASE`, `IDENTITY`, `HOUSING`, `INSURANCE`, `PERSONAL` and `OTHER`.
+
+The initial processing status is `UPLOADED`. Extraction and background processing are later milestones.
 
 To stop PostgreSQL:
 

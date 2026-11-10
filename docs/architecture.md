@@ -43,6 +43,16 @@ Planned modules:
 - Put user and workspace UUIDs into the signed token. Protected feature services must scope every query to the authenticated workspace.
 - The configured fallback signing key is for local development only; deployment must provide `SIGNALTRELLIS_JWT_SECRET`.
 
+## Capture and document storage
+
+- `source_items` is the workspace-owned capture record; `documents` stores file metadata and lifecycle state.
+- Content is written to a local storage adapter using generated UUID keys. The original filename is metadata only and never becomes a filesystem path.
+- Accept only PDF, PNG and JPEG signatures and matching filename extensions; limit uploads to 10 MB.
+- Store the server-detected media type, byte count and SHA-256 checksum for later integrity checks.
+- Scope document search, metadata, inbox and download queries through the source item's workspace ID from the authenticated token.
+- Persist the file before metadata in one request and remove it if the database transaction fails. A process crash between those operations can leave an orphaned local file; a cleanup job can be added with asynchronous processing later.
+- Local filesystem storage is the development adapter. A later deployment can replace it with private object storage without exposing storage keys to the API.
+
 ## API error contract
 
 Errors use a stable JSON shape with timestamp, HTTP status, machine-readable code, safe message, request path and optional field errors. Unexpected exceptions do not expose stack traces or internal exception messages.

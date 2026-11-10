@@ -12,7 +12,7 @@
 - [x] Start the service against local PostgreSQL and apply migrations
 - [ ] Inspect the OpenAPI page in a browser
 
-## Milestone 2 — Identity and security (implementation started)
+## Milestone 2 — Identity and security (implementation in place; verification pending)
 
 - [x] Registration and login endpoints
 - [x] BCrypt password hashing and password input guard
@@ -22,10 +22,20 @@
 - [ ] Unauthorized-access and registration-flow tests
 - [ ] Run against PostgreSQL and verify registration, login and protected-route behavior
 
-## Next milestones
+## Milestone 3 — Capture and document lifecycle (implementation in place; functional verification pending)
 
-2. Complete identity verification and workspace isolation checks.
-3. Capture and document lifecycle.
+- [x] Upload PDF, PNG and JPEG files with a 10 MB request limit
+- [x] Validate file signatures and matching filename extensions
+- [x] Store files outside the repository with generated UUID keys
+- [x] Persist workspace-owned source and document metadata, SHA-256 and detected media type
+- [x] Categorize, search and list unprocessed documents
+- [x] Retrieve metadata and download content with workspace ownership enforced
+- [x] Apply capture migrations and start the application against local PostgreSQL
+- [ ] Verify upload/search/download behavior with real requests
+- [ ] Add automated capture and workspace-isolation tests
+
+## Later milestones
+
 4. Context entities, relationships, events and commitments.
 5. Deterministic signals with evidence.
 6. Action proposals, approval states, scheduling and audit.
