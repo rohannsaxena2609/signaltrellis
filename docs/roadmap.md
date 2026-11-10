@@ -79,7 +79,7 @@ Automated and real-request behavior testing for these implementation milestones 
 - [x] Identify date and amount candidates with source-page excerpts
 - [x] Add human confirm, correct and reject review states with reviewer/timestamp
 - [x] Add authenticated extraction and review endpoints
-- [ ] Add OCR for scanned PDFs and image uploads
+- [x] Add local Tesseract OCR for scanned PDF pages and uploaded PNG/JPEG files
 - [ ] Add provider-backed structured LLM extraction after API credentials are configured
 - [ ] Connect confirmed facts to context graph records
 - [ ] Verify extraction and review behavior and add automated tests during final verification

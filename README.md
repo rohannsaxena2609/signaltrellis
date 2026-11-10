@@ -88,9 +88,9 @@ The current reminder milestone persists an in-app reminder schedule only. It doe
 
 ## Document extraction and review
 
-`POST /api/v1/documents/{id}/extract` extracts text from a PDF locally and returns per-page text plus date and amount candidates with page excerpts. `GET /api/v1/documents/{id}/extraction` retrieves the latest extraction. Use `PATCH /api/v1/documents/{documentId}/extraction/facts/{factId}` with a review status of `CONFIRMED`, `CORRECTED` or `REJECTED`; corrected candidates require `correctedValue`. Candidate values are untrusted suggestions and stay separate from context records until a human confirms them.
+`POST /api/v1/documents/{id}/extract` extracts text locally and returns per-page text plus date and amount candidates with page excerpts. Text-based PDFs use PDFBox; scanned PDF pages and uploaded PNG/JPEG images use the local Tesseract executable. `GET /api/v1/documents/{id}/extraction` retrieves the latest extraction. Use `PATCH /api/v1/documents/{documentId}/extraction/facts/{factId}` with a review status of `CONFIRMED`, `CORRECTED` or `REJECTED`; corrected candidates require `correctedValue`. Candidate values are untrusted suggestions and stay separate from context records until a human confirms them.
 
-This local step supports text-based PDFs and does not call an AI provider. Scanned-PDF/image OCR, structured model extraction and context-graph writes are deferred until the AI credentials and later review flow are configured.
+The OCR executable path defaults to `tesseract` and can be configured with `SIGNALTRELLIS_TESSERACT_PATH`; languages default to `eng` and can be changed with `SIGNALTRELLIS_OCR_LANGUAGES`. OCR is local and does not call an AI provider. Structured model extraction and context-graph writes are deferred until the AI credentials and later review flow are configured. OCR is limited to 25 pages per request and 40 megapixels per image/page.
 
 To stop PostgreSQL:
 

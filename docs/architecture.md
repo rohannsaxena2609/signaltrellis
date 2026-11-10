@@ -62,9 +62,9 @@ Planned modules:
 
 ## Document extraction and fact review
 
-- The local PDFBox extractor stores page text and candidate facts separately from the source document. Each candidate references an extraction, page number and excerpt, preserving inspectable provenance.
+- The local PDFBox extractor stores page text and candidate facts separately from the source document. Scanned PDF pages and image documents use a configurable Tesseract executable. Each candidate references an extraction, page number and excerpt, preserving inspectable provenance.
 - Date and amount matches are candidates, not verified facts. They remain pending until a workspace owner confirms, corrects or rejects them; corrections retain the original extracted value and record reviewer and time.
-- This provider-free extraction stage does not perform OCR or call an LLM. Model-backed extraction and OCR are separate additions so API credentials, cost and confidence calibration can be handled explicitly.
+- This provider-free extraction stage performs OCR locally and does not call an LLM. Model-backed extraction remains a separate addition so API credentials, credit usage and confidence calibration can be handled explicitly.
 
 ## Personal context graph and timeline
 

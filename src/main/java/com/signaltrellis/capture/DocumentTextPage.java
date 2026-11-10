@@ -23,18 +23,22 @@ public class DocumentTextPage {
     private String content;
     @Column(name = "character_count", nullable = false)
     private int characterCount;
+    @Column(name = "extraction_method", nullable = false, length = 32)
+    private String extractionMethod;
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     protected DocumentTextPage() { }
 
-    public DocumentTextPage(UUID extractionId, UUID workspaceId, int pageNumber, String content, Instant now) {
+    public DocumentTextPage(UUID extractionId, UUID workspaceId, int pageNumber, String content,
+                            String extractionMethod, Instant now) {
         this.id = UUID.randomUUID();
         this.extractionId = extractionId;
         this.workspaceId = workspaceId;
         this.pageNumber = pageNumber;
         this.content = content;
         this.characterCount = content.length();
+        this.extractionMethod = extractionMethod;
         this.createdAt = now;
     }
 
@@ -44,4 +48,5 @@ public class DocumentTextPage {
     public int getPageNumber() { return pageNumber; }
     public String getContent() { return content; }
     public int getCharacterCount() { return characterCount; }
+    public String getExtractionMethod() { return extractionMethod; }
 }
