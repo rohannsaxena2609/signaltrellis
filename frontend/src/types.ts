@@ -111,7 +111,7 @@ export type Entity = {
 
 export type Graph = {
   nodes: Entity[]
-  relationships: { id: string; sourceEntityId: string; targetEntityId: string; type: string }[]
+  relationships: { id: string; sourceEntityId: string; sourceName: string; targetEntityId: string; targetName: string; type: string }[]
   truncated: boolean
 }
 

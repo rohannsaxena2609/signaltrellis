@@ -1,0 +1,29 @@
+.relationship-list {
+  padding: 14px;
+}
+
+.relationship-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-top: 1px solid #edf0eb;
+}
+
+.relationship-row > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.relationship-row strong {
+  color: #46564a;
+  font-size: 9px;
+}
+
+.relationship-row small {
+  color: #89948b;
+  font-size: 8px;
+}

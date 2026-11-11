@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './styles.css'
 import './styles/document-filters.css'
+import './styles/context-relationships.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
