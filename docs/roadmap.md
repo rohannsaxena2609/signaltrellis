@@ -128,8 +128,18 @@ Automated and real-request behavior testing for these implementation milestones 
 
 Kafka and Redis remain deferred: PostgreSQL is already the system of record and durable queue for this modular monolith, and there is no separate consumer or cache workload yet.
 
-## Later milestones
+## Milestone 11 — Dashboard, deployment and portfolio groundwork (implementation in place; verification deferred)
 
-11. React + TypeScript dashboard, deployment and portfolio evidence.
+- [x] Add the responsive React + TypeScript workspace shell and account screens
+- [x] Connect the dashboard to signals, source documents, commitments, and pending approvals
+- [x] Add user flows for signal review, document upload/local processing, commitments, context entities, assistant requests, and action approvals
+- [x] Keep assistant requests user-triggered and display the backend's disabled state without sending AI calls automatically
+- [x] Add a separate Nginx + API + pgvector PostgreSQL deployment scaffold with persistent data volumes
+- [x] Require deployment database and JWT secrets and default all AI/MCP features off
+- [x] Add frontend/backend build workflow and portfolio walkthrough evidence checklist
+- [ ] Complete manual UI, API, accessibility, workspace isolation, and end-to-end verification for milestones 1–11
+- [ ] Verify container startup, health, persistence and deployment security configuration
+- [ ] Capture redacted portfolio screenshots and record actual verification results
+- [ ] Configure and verify OmniRoute calls only during the explicitly planned provider verification session
 
-Features remain planned until implemented and verified. The GitHub account action and live deployment are not part of this local scaffold.
+Implementation checkboxes record code and documentation work. Behavior and deployment claims remain pending until the final verification tasks above are complete. The GitHub account action and live deployment are not part of this scaffold.

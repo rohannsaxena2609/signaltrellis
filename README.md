@@ -7,7 +7,7 @@ SignalTrellis connects personal records, commitments and events into a context g
 
 ## Current milestone
 
-Milestones 1–2 provide the Java backend, PostgreSQL with Flyway, API error handling, registration/login, short-lived JWTs and personal workspaces. Milestone 3 adds authenticated document capture, local file storage and workspace-scoped document metadata/search.
+Milestone 11 adds a React + TypeScript dashboard and a container deployment scaffold. Implementation is in place; cross-milestone behavior verification is deliberately deferred to the final verification phase. See [docs/roadmap.md](docs/roadmap.md) for status.
 
 ## Technology
 
@@ -18,10 +18,11 @@ Milestones 1–2 provide the Java backend, PostgreSQL with Flyway, API error han
 - Flyway
 - Springdoc OpenAPI
 - Docker Compose
+- React, TypeScript, Vite and Nginx
 
 ## Run locally
 
-Requirements: Java 21+, Maven 3.9+, Docker Compose.
+Requirements: Java 21+, Maven 3.9+, Node.js 22+, npm and Docker Compose.
 
 ```sh
 docker compose up -d postgres
@@ -31,6 +32,16 @@ mvn spring-boot:run
 PostgreSQL is published on host port `5433` to avoid colliding with an existing local PostgreSQL service.
 
 The API listens on `http://localhost:8080`. OpenAPI UI is at `http://localhost:8080/swagger-ui.html`; the OpenAPI document is at `/v3/api-docs`. The initial migration creates the application schema. No AI provider credentials are required for this milestone.
+
+In another terminal, start the dashboard:
+
+```sh
+cd frontend
+npm ci
+npm run dev
+```
+
+Open the Vite URL printed in the terminal (normally `http://localhost:5173`). The development server proxies API calls to `http://localhost:8080`; set `API_PROXY_TARGET` if the backend listens on a different port. The production frontend is a static SPA served by Nginx and sends API requests through the same origin.
 
 ## Authentication API
 
@@ -145,7 +156,28 @@ src/main/java/com/signaltrellis/
   SignalTrellisApplication.java
 src/main/resources/
   db/migration/    Versioned database migrations
+frontend/src/
+  pages/           Dashboard, signals, documents, commitments, context, assistant, approvals
+  ui/              Authentication screen and responsive application shell
+Dockerfile         API container build
+docker-compose.deploy.yml  Separate production-style deployment scaffold
 ```
+
+## Deployment scaffold
+
+The separate `docker-compose.deploy.yml` builds the API and frontend containers and runs PostgreSQL with pgvector. It uses persistent volumes for PostgreSQL and uploaded documents. The API is reachable through Nginx only, and deployment defaults keep OmniRoute-backed extraction, the assistant, embeddings, and MCP disabled. This is deployment groundwork, not a deployed or security-reviewed public service.
+
+Provide secrets in the shell or a local ignored `.env` file before running Compose. Do not commit real values:
+
+```sh
+export DATABASE_PASSWORD='use-a-unique-strong-password'
+export SIGNALTRELLIS_JWT_SECRET="$(openssl rand -base64 48)"
+docker compose -f docker-compose.deploy.yml up --build -d
+```
+
+The dashboard is then available on port 3000 by default; set `WEB_PORT` to change it. Put a TLS reverse proxy in front before exposing it to the internet. To stop the deployment while retaining its data, use `docker compose -f docker-compose.deploy.yml down`; remove named volumes only when you intend to delete the database and uploaded files.
+
+For a guided product walkthrough and portfolio evidence checklist, see [docs/portfolio-demo.md](docs/portfolio-demo.md). Screenshots and final verification results should be added only after the deferred testing pass.
 
 ## Product architecture
 
@@ -153,4 +185,4 @@ The intended shape is a modular monolith. PostgreSQL is the source of truth for 
 
 ## Status
 
-This is an early foundation, not a portfolio-ready product. Features and claims will be marked complete only after implementation and verification.
+The dashboard and deployment scaffold are implemented. API behavior, end-to-end flows, deployment startup, screenshots, and security review remain pending final verification; do not treat this as a production-ready deployment until those checks are complete.
