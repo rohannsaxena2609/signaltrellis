@@ -108,6 +108,14 @@ AI output remains a candidate. The app requires an exact source quote on a valid
 
 After reviewing a candidate as `CONFIRMED` or `CORRECTED`, link it to an existing context entity, event, or commitment with `POST /api/v1/documents/{documentId}/extraction/facts/{factId}/context-links`, using `{ "targetType": "ENTITY", "targetId": "..." }` (or `EVENT` / `COMMITMENT`). The target must belong to the authenticated workspace. `GET` on the same route returns its source evidence and linked record reference. This associates verified provenance with a record; it does not create or mutate context data.
 
+## Document indexing and evidence retrieval
+
+After a document has been extracted, `POST /api/v1/documents/{id}/index` creates overlapping text chunks with page and character offsets. Indexing is idempotent for an extraction. Embeddings are disabled by default (`SIGNALTRELLIS_EMBEDDINGS_ENABLED=false`), so this route only stores chunks and makes no OmniRoute call. The current limit is 20,000 extracted characters per document; configure it with `SIGNALTRELLIS_RETRIEVAL_MAX_CHARS`.
+
+`POST /api/v1/retrieval/search` accepts `{ "query": "renewal date", "limit": 5 }` and returns ranked evidence snippets with filename, page number, chunk index, character offsets, and reference number. Search uses PostgreSQL full-text ranking by default. If embeddings are explicitly enabled and available, it embeds the query and uses hybrid lexical/semantic ranking; if embedding fails or no matching vectors exist, it falls back to lexical results. Search never sends retrieved document text to a chat model.
+
+The local database image is `pgvector/pgvector:pg17`, required by the vector migration. If a PostgreSQL 17 container is already running from the older `postgres:17-alpine` image, recreate only its container before starting the app so the extension can be installed; the Compose volume remains the same. Do not delete the volume. The migration creates the `vector` extension and a half-precision vector index sized for 3,072 dimensions. Embedding calls remain off until you explicitly set `SIGNALTRELLIS_EMBEDDINGS_ENABLED=true` and configure the OmniRoute key/base URL. A synthetic evaluation set and suggested metrics are in `docs/retrieval-evaluation.md` and `docs/retrieval-evaluation.jsonl`.
+
 To stop PostgreSQL:
 
 ```sh

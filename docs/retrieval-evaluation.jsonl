@@ -1,0 +1,4 @@
+{"query":"policy renewal date","relevant_sources":["sample-insurance-policy.pdf"],"relevant_pages":[2],"fixture_note":"Synthetic labels; use a generated test document, never a personal upload."}
+{"query":"monthly payment amount","relevant_sources":["sample-rental-agreement.pdf"],"relevant_pages":[4],"fixture_note":"Synthetic labels; use a generated test document, never a personal upload."}
+{"query":"warranty expires","relevant_sources":["sample-device-receipt.pdf"],"relevant_pages":[1],"fixture_note":"Synthetic labels; use a generated test document, never a personal upload."}
+{"query":"emergency contact phone","relevant_sources":["sample-home-record.pdf"],"relevant_pages":[3],"fixture_note":"Synthetic labels; use a generated test document, never a personal upload."}

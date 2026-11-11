@@ -90,9 +90,20 @@ Automated and real-request behavior testing for these implementation milestones 
 - [x] Enforce workspace ownership for linked context records and retain source page evidence in link responses
 - [ ] Verify extraction and review behavior and add automated tests during final verification
 
+## Milestone 8 — Evidence-backed retrieval and evaluation (implementation in place; verification deferred)
+
+- [x] Store overlapping page-aware text chunks with source offsets and content hashes
+- [x] Add PostgreSQL full-text search and pgvector half-precision vector storage/indexing
+- [x] Add authenticated, workspace-scoped document indexing endpoint
+- [x] Add authenticated lexical/hybrid retrieval endpoint with page and character citations
+- [x] Keep embedding calls disabled by default and fall back to lexical search
+- [x] Add a synthetic retrieval evaluation set and metric guidance
+- [ ] Recreate the local PostgreSQL container with pgvector and apply the new migration
+- [ ] Verify indexing, citation offsets, workspace isolation and retrieval quality during final verification
+- [ ] Enable OmniRoute embeddings and measure retrieval quality during final verification
+
 ## Later milestones
 
-8. Evidence-backed retrieval and evaluation.
 9. Tool-using assistant and MCP integration with approval checks.
 10. Asynchronous processing, outbox, retries and observability where justified.
 11. React + TypeScript dashboard, deployment and portfolio evidence.
