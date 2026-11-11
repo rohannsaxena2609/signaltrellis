@@ -102,9 +102,20 @@ Automated and real-request behavior testing for these implementation milestones 
 - [ ] Verify indexing, citation offsets, workspace isolation and retrieval quality during final verification
 - [ ] Enable OmniRoute embeddings and measure retrieval quality during final verification
 
+## Milestone 9 — Agentic AI and MCP (implementation in place; verification deferred)
+
+- [x] Add provider-independent Spring AI tool calling for a bounded assistant turn
+- [x] Add workspace-scoped document search, upcoming commitment, and active signal tools
+- [x] Allow the assistant to prepare a reminder proposal only; approval remains a separate user action
+- [x] Add deterministic proposal idempotency to avoid duplicate proposals on retried tool calls
+- [x] Expose selected capabilities through a stateless Spring AI MCP server
+- [x] Require existing JWT authentication for MCP requests and derive workspace identity from authentication
+- [x] Keep assistant and MCP tools disabled by default; cap tool calls per request
+- [ ] Configure OmniRoute and verify assistant tool selection during final verification
+- [ ] Verify MCP initialization, authentication, workspace isolation and approval flow during final verification
+
 ## Later milestones
 
-9. Tool-using assistant and MCP integration with approval checks.
 10. Asynchronous processing, outbox, retries and observability where justified.
 11. React + TypeScript dashboard, deployment and portfolio evidence.
 

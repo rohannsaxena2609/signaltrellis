@@ -85,6 +85,15 @@ Planned modules:
 - `signal_history` records detection, reopening, dismissal and resolution with actor and timestamp. Repeated identical evaluations do not append redundant history rows.
 - Recompute currently runs on an authenticated API request. Scheduling, event publication and asynchronous delivery remain later work.
 
+## Assistant tools and MCP
+
+- The assistant uses Spring AI tool calling with an explicit per-request tool set. Tool context carries the authenticated user object outside the model prompt; tools derive all workspace reads from that identity rather than model arguments.
+- Available capabilities search cited document chunks, list bounded upcoming commitments, list active signals, and prepare a reminder proposal. A proposal tool cannot approve, reject, dismiss, resolve, or schedule actions.
+- The existing authenticated action API remains the only path that approves a proposal and creates a reminder. The assistant returns proposal status as pending and requires the user to review it.
+- MCP uses stateless HTTP on `/mcp`. Spring Security's JWT filter protects the endpoint and MCP tool execution uses the authenticated principal. Tool registration is disabled by default; enabling it must not bypass workspace scoping.
+- Assistant chat and embeddings are separately controlled. Enabling assistant chat sends the user's message and any tool-returned evidence needed for the answer to the configured OpenAI-compatible provider. API usage depends on the provider and selected model.
+- Spring AI limits each turn to eight total tool calls and three calls per tool. Assistant and MCP behavior remains unverified until final integration testing.
+
 ## API error contract
 
 Errors use a stable JSON shape with timestamp, HTTP status, machine-readable code, safe message, request path and optional field errors. Unexpected exceptions do not expose stack traces or internal exception messages.

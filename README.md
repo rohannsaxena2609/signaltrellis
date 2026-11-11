@@ -116,6 +116,14 @@ After a document has been extracted, `POST /api/v1/documents/{id}/index` creates
 
 The local database image is `pgvector/pgvector:pg17`, required by the vector migration. If a PostgreSQL 17 container is already running from the older `postgres:17-alpine` image, recreate only its container before starting the app so the extension can be installed; the Compose volume remains the same. Do not delete the volume. The migration creates the `vector` extension and a half-precision vector index sized for 3,072 dimensions. Embedding calls remain off until you explicitly set `SIGNALTRELLIS_EMBEDDINGS_ENABLED=true` and configure the OmniRoute key/base URL. A synthetic evaluation set and suggested metrics are in `docs/retrieval-evaluation.md` and `docs/retrieval-evaluation.jsonl`.
 
+## Assistant and MCP tools
+
+`POST /api/v1/assistant/chat` accepts `{ "message": "Find my upcoming renewals and prepare reminders for those due within 15 days." }`. The Spring AI agent can search cited documents, list upcoming commitments, inspect active signals, and prepare a reminder proposal. It cannot approve or reject proposals, and preparing one only creates a `PENDING_APPROVAL` item; the authenticated action approval endpoint is still required to schedule anything.
+
+The assistant is disabled by default. To enable its model calls, set `SIGNALTRELLIS_ASSISTANT_ENABLED=true` with `SIGNALTRELLIS_AI_API_KEY`, `SIGNALTRELLIS_AI_BASE_URL`, and `SIGNALTRELLIS_AI_MODEL`. Each assistant turn is limited to eight tool calls total and three calls per tool. A call sends the user's message and any evidence returned by tools to the configured model provider, so provider usage and data handling follow that provider's configuration.
+
+The stateless HTTP MCP endpoint is `/mcp`. Its tool registration is also disabled by default; set `SIGNALTRELLIS_MCP_ENABLED=true` to expose the selected workspace tools. MCP requests require the same JWT bearer token used by the REST API. MCP tools derive workspace scope from that authenticated principal and provide the same read capabilities plus pending reminder proposal preparation. Do not expose the endpoint publicly without an authenticated TLS-protected deployment.
+
 To stop PostgreSQL:
 
 ```sh
