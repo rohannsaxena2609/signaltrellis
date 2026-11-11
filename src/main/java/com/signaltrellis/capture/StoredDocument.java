@@ -73,6 +73,11 @@ public class StoredDocument {
     public DocumentProcessingStatus getProcessingStatus() { return processingStatus; }
     public Instant getCreatedAt() { return createdAt; }
 
+    public void queueProcessing() { this.processingStatus = DocumentProcessingStatus.QUEUED; }
+    public void markProcessing() { this.processingStatus = DocumentProcessingStatus.PROCESSING; }
+    public void markProcessed() { this.processingStatus = DocumentProcessingStatus.PROCESSED; }
+    public void markProcessingFailed() { this.processingStatus = DocumentProcessingStatus.FAILED; }
+
     public void reclassify(DocumentCategory category) {
         this.category = category;
     }

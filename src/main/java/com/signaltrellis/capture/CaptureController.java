@@ -36,13 +36,16 @@ public class CaptureController {
     private final DocumentExtractionService extractions;
     private final FactContextLinkService factLinks;
     private final DocumentIndexService indexing;
+    private final DocumentProcessingJobService processingJobs;
 
     public CaptureController(DocumentService documents, DocumentExtractionService extractions,
-                             FactContextLinkService factLinks, DocumentIndexService indexing) {
+                             FactContextLinkService factLinks, DocumentIndexService indexing,
+                             DocumentProcessingJobService processingJobs) {
         this.documents = documents;
         this.extractions = extractions;
         this.factLinks = factLinks;
         this.indexing = indexing;
+        this.processingJobs = processingJobs;
     }
 
     @PostMapping(path = "/capture/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -109,6 +112,18 @@ public class CaptureController {
     public DocumentExtractionService.ExtractionResponse extraction(@AuthenticationPrincipal AuthenticatedUser user,
                                                                     @PathVariable UUID id) {
         return extractions.get(user.workspaceId(), id);
+    }
+
+    @PostMapping("/documents/{id}/process")
+    public ResponseEntity<DocumentProcessingJobService.JobResponse> process(
+            @AuthenticationPrincipal AuthenticatedUser user, @PathVariable UUID id) {
+        return ResponseEntity.accepted().body(processingJobs.enqueue(user.workspaceId(), id));
+    }
+
+    @GetMapping("/documents/{id}/process")
+    public DocumentProcessingJobService.JobResponse processingStatus(
+            @AuthenticationPrincipal AuthenticatedUser user, @PathVariable UUID id) {
+        return processingJobs.status(user.workspaceId(), id);
     }
 
     @PostMapping("/documents/{id}/index")
