@@ -11,6 +11,8 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
   const [extraction, setExtraction] = useState<Extraction | null>(null)
   const [job, setJob] = useState<ProcessingJob | null>(null)
   const [search, setSearch] = useState(initialQuery)
+  const [category, setCategory] = useState('')
+  const [status, setStatus] = useState('')
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -21,12 +23,12 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
   useEffect(() => {
     let active = true
     setLoading(true)
-    get<Page<DocumentRecord>>(`/documents${query({ query: search.trim() || undefined, page: 0, size: 50 })}`)
+    get<Page<DocumentRecord>>(`/documents${query({ query: search.trim() || undefined, category: category || undefined, status: status || undefined, page: 0, size: 50 })}`)
       .then((page) => { if (active) setDocuments(page.content) })
       .catch((problem: unknown) => { if (active) setError(problem instanceof Error ? problem.message : 'Documents could not be loaded.') })
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
-  }, [search, refreshKey])
+  }, [search, category, status, refreshKey])
 
   useEffect(() => {
     if (!selected || !job || !['QUEUED', 'PROCESSING'].includes(job.status)) return
@@ -126,7 +128,7 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
       </div>
       {error && <div className="inline-error"><CircleAlert size={16} />{error}</div>}{message && <div className="success-banner"><Check size={15} />{message}</div>}
 
-      <div className="documents-toolbar"><div className="document-search"><Search size={16} /><input value={search} onChange={(event) => { setSearch(event.target.value); onQueryChange(event.target.value) }} placeholder="Search by filename" aria-label="Search documents by filename" />{search && <button aria-label="Clear search" onClick={() => { setSearch(''); onQueryChange('') }}><X size={14} /></button>}</div><span className="result-count">{loading ? 'Loading…' : `${documents.length} records`}</span></div>
+      <div className="documents-toolbar"><div className="document-filter-group"><div className="document-search"><Search size={16} /><input value={search} onChange={(event) => { setSearch(event.target.value); onQueryChange(event.target.value) }} placeholder="Search by filename" aria-label="Search documents by filename" />{search && <button aria-label="Clear search" onClick={() => { setSearch(''); onQueryChange('') }}><X size={14} /></button>}</div><select className="document-filter" aria-label="Filter documents by category" value={category} onChange={(event) => setCategory(event.target.value)}><option value="">All categories</option>{['UNCATEGORIZED', 'FINANCIAL', 'PURCHASE', 'IDENTITY', 'HOUSING', 'INSURANCE', 'PERSONAL', 'OTHER'].map((value) => <option key={value} value={value}>{titleCase(value)}</option>)}</select><select className="document-filter" aria-label="Filter documents by status" value={status} onChange={(event) => setStatus(event.target.value)}><option value="">All statuses</option>{['UPLOADED', 'QUEUED', 'PROCESSING', 'PROCESSED', 'FAILED'].map((value) => <option key={value} value={value}>{titleCase(value)}</option>)}</select></div><span className="result-count">{loading ? 'Loading…' : `${documents.length} records`}</span></div>
 
       <div className={`documents-workspace ${selected ? 'documents-workspace--detail' : ''}`}>
         <section className="panel documents-table-panel">
