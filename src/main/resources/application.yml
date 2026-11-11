@@ -32,6 +32,17 @@ spring:
           max-completion-tokens: 2048
       embedding:
         model: ${SIGNALTRELLIS_EMBEDDING_MODEL:gemini/gemini-embedding-2}
+    mcp:
+      server:
+        protocol: STATELESS
+        type: SYNC
+        annotation-scanner:
+          enabled: ${SIGNALTRELLIS_MCP_ENABLED:false}
+    tools:
+      limits:
+        max-calls-per-tool-default: 3
+        max-total-tool-calls: 8
+        on-limit-exceeded: RETURN_ERROR_RESPONSE
     retry:
       max-attempts: 1
 
@@ -67,6 +78,7 @@ signaltrellis:
     max-document-characters: ${SIGNALTRELLIS_RETRIEVAL_MAX_CHARS:20000}
   ai:
     enabled: ${SIGNALTRELLIS_AI_ENABLED:false}
+    assistant-enabled: ${SIGNALTRELLIS_ASSISTANT_ENABLED:false}
     model: ${SIGNALTRELLIS_AI_MODEL:auto/best-free}
     max-input-characters: ${SIGNALTRELLIS_AI_MAX_INPUT_CHARACTERS:20000}
   ocr:

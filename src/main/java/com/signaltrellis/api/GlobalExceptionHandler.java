@@ -23,6 +23,8 @@ import com.signaltrellis.identity.PasswordTooLongException;
 import com.signaltrellis.actions.ActionConflictException;
 import com.signaltrellis.actions.ActionRecordNotFoundException;
 import com.signaltrellis.actions.InvalidActionRequestException;
+import com.signaltrellis.assistant.AssistantUnavailableException;
+import com.signaltrellis.assistant.InvalidAssistantRequestException;
 
 import java.time.Instant;
 import java.util.Map;
@@ -30,6 +32,20 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(AssistantUnavailableException.class)
+    public ResponseEntity<ApiError> handleAssistantUnavailable(AssistantUnavailableException exception,
+                                                                HttpServletRequest request) {
+        return error(HttpStatus.SERVICE_UNAVAILABLE, "ASSISTANT_UNAVAILABLE", exception.getMessage(),
+                request.getRequestURI(), Map.of());
+    }
+
+    @ExceptionHandler(InvalidAssistantRequestException.class)
+    public ResponseEntity<ApiError> handleInvalidAssistantRequest(InvalidAssistantRequestException exception,
+                                                                    HttpServletRequest request) {
+        return error(HttpStatus.BAD_REQUEST, "INVALID_ASSISTANT_REQUEST", exception.getMessage(),
+                request.getRequestURI(), Map.of());
+    }
 
     @ExceptionHandler(OcrUnavailableException.class)
     public ResponseEntity<ApiError> handleOcrUnavailable(OcrUnavailableException exception,
