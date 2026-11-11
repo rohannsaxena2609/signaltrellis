@@ -4,6 +4,8 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,42 +37,52 @@ public class DocumentExtractionService {
     private final DocumentExtractionRepository extractions;
     private final DocumentTextPageRepository pages;
     private final ExtractedFactRepository facts;
+    private final ExtractedFactReviewRepository factReviews;
     private final DocumentFileStorage storage;
     private final Clock clock;
     private final OcrEngine ocr;
+    private final ObjectProvider<OmniRouteFactExtractor> aiExtractors;
+    private final int maxAiInputCharacters;
 
     public DocumentExtractionService(StoredDocumentRepository documents,
                                      DocumentExtractionRepository extractions,
                                      DocumentTextPageRepository pages,
-                                     ExtractedFactRepository facts,
-                                     DocumentFileStorage storage, Clock clock, OcrEngine ocr) {
+                                     ExtractedFactRepository facts, ExtractedFactReviewRepository factReviews,
+                                     DocumentFileStorage storage, Clock clock, OcrEngine ocr,
+                                     ObjectProvider<OmniRouteFactExtractor> aiExtractors,
+                                     @Value("${signaltrellis.ai.max-input-characters:20000}") int maxAiInputCharacters) {
         this.documents = documents;
         this.extractions = extractions;
         this.pages = pages;
         this.facts = facts;
+        this.factReviews = factReviews;
         this.storage = storage;
         this.clock = clock;
         this.ocr = ocr;
+        this.aiExtractors = aiExtractors;
+        if (maxAiInputCharacters < 1000 || maxAiInputCharacters > MAX_EXTRACTED_CHARACTERS) {
+            throw new IllegalArgumentException("AI input limit must be between 1000 and 1000000 characters");
+        }
+        this.maxAiInputCharacters = maxAiInputCharacters;
     }
 
     @Transactional
     public ExtractionResponse extract(UUID workspaceId, UUID documentId) {
         StoredDocument storedDocument = documents.findForUpdateByIdAndSourceItem_WorkspaceId(documentId, workspaceId)
                 .orElseThrow(DocumentNotFoundException::new);
+        DocumentExtraction existing = extractions.findByDocumentIdAndWorkspaceId(documentId, workspaceId)
+                .orElse(null);
+        if (existing != null) {
+            return toResponse(existing, pages.findByExtractionIdOrderByPageNumber(existing.getId()),
+                    facts.findByExtractionIdAndWorkspaceIdOrderBySourcePageAscIdAsc(existing.getId(), workspaceId));
+        }
         List<PageText> extractedPages = readPages(storedDocument.getStorageKey(),
                 storedDocument.getDetectedContentType());
         Instant now = clock.instant();
+        AiRun aiRun = runAi(extractedPages);
         String extractor = extractedPages.stream().anyMatch(page -> page.method().equals("TESSERACT"))
                 ? "PDFBOX_TESSERACT_LOCAL" : "PDFBOX_TEXT_3.0";
-        DocumentExtraction extraction = extractions.findByDocumentIdAndWorkspaceId(documentId, workspaceId)
-                .orElse(null);
-        if (extraction == null) {
-            extraction = extractions.save(new DocumentExtraction(documentId, workspaceId, extractor, now));
-        } else {
-            facts.deleteByExtractionId(extraction.getId());
-            pages.deleteByExtractionId(extraction.getId());
-            extraction.reprocess(extractor, now);
-        }
+        DocumentExtraction extraction = extractions.save(new DocumentExtraction(documentId, workspaceId, extractor, now));
 
         int totalCharacters = 0;
         List<DocumentTextPage> savedPages = new ArrayList<>();
@@ -88,7 +100,13 @@ public class DocumentExtractionService {
                         500 - savedFacts.size()));
             }
         }
+        for (OmniRouteFactExtractor.FactSuggestion suggestion : aiRun.facts()) {
+            if (savedFacts.size() >= 500) break;
+            ExtractedFact fact = toFact(extraction.getId(), workspaceId, extractedPages, suggestion, now);
+            if (fact != null) savedFacts.add(fact);
+        }
         extraction.complete(totalCharacters, now);
+        extraction.recordAiResult(aiRun.status(), aiRun.model(), aiRun.inputCharacters(), aiRun.failureReason());
         extractions.save(extraction);
         pages.saveAll(savedPages);
         facts.saveAll(savedFacts);
@@ -124,7 +142,9 @@ public class DocumentExtractionService {
         if (correction != null && correction.length() > 1000) {
             throw new InvalidDocumentException("Corrected value must be at most 1000 characters");
         }
-        fact.review(status, correction, userId, clock.instant());
+        Instant reviewedAt = clock.instant();
+        factReviews.save(new ExtractedFactReview(fact, status, correction, userId, reviewedAt));
+        fact.review(status, correction, userId, reviewedAt);
         return toResponse(facts.save(fact));
     }
 
@@ -224,6 +244,68 @@ public class DocumentExtractionService {
         return result;
     }
 
+    private AiRun runAi(List<PageText> pages) {
+        OmniRouteFactExtractor extractor = aiExtractors.getIfAvailable();
+        if (extractor == null) {
+            return new AiRun(AiExtractionStatus.NOT_CONFIGURED, null, 0,
+                    "AI extraction is disabled", List.of());
+        }
+        StringBuilder input = new StringBuilder();
+        for (PageText page : pages) {
+            if (page.text().isBlank()) continue;
+            input.append("\n[PAGE ").append(page.pageNumber()).append("]\n")
+                    .append(page.text()).append('\n');
+            if (input.length() > maxAiInputCharacters) {
+                return new AiRun(AiExtractionStatus.SKIPPED_LIMIT, extractor.model(), input.length(),
+                        "Document text exceeds the configured AI input limit", List.of());
+            }
+        }
+        if (input.isEmpty()) {
+            return new AiRun(AiExtractionStatus.SKIPPED_LIMIT, extractor.model(), 0,
+                    "No text was available for structured extraction", List.of());
+        }
+        try {
+            return new AiRun(AiExtractionStatus.SUCCEEDED, extractor.model(), input.length(), null,
+                    extractor.extract(input.toString()));
+        } catch (RuntimeException exception) {
+            return new AiRun(AiExtractionStatus.FAILED, extractor.model(), input.length(),
+                    "OmniRoute extraction failed; local text candidates remain available", List.of());
+        }
+    }
+
+    private ExtractedFact toFact(UUID extractionId, UUID workspaceId, List<PageText> pages,
+                                 OmniRouteFactExtractor.FactSuggestion suggestion, Instant now) {
+        if (suggestion == null || suggestion.type() == null || suggestion.value() == null
+                || suggestion.sourcePage() == null || suggestion.sourceQuote() == null
+                || suggestion.confidence() == null) return null;
+        String type = suggestion.type().trim().toUpperCase(java.util.Locale.ROOT);
+        String value = suggestion.value().trim();
+        String quote = suggestion.sourceQuote().trim();
+        if (!type.matches("[A-Z][A-Z0-9_]{0,56}") || value.isEmpty() || value.length() > 1000
+                || quote.isEmpty() || quote.length() > 1000
+                || suggestion.confidence().compareTo(java.math.BigDecimal.ZERO) < 0
+                || suggestion.confidence().compareTo(java.math.BigDecimal.ONE) > 0) return null;
+        PageText source = pages.stream().filter(page -> page.pageNumber() == suggestion.sourcePage())
+                .findFirst().orElse(null);
+        if (source == null || !normalize(source.text()).contains(normalize(quote))) return null;
+        String excerpt = sourceExcerpt(source.text(), normalize(quote));
+        return new ExtractedFact(extractionId, workspaceId, "AI_" + type, value, source.pageNumber(), excerpt,
+                suggestion.confidence(), now);
+    }
+
+    private String normalize(String value) {
+        return value.replaceAll("\\s+", " ").trim();
+    }
+
+    private String sourceExcerpt(String page, String normalizedQuote) {
+        String normalizedPage = normalize(page);
+        int start = normalizedPage.indexOf(normalizedQuote);
+        if (start < 0) return normalizedQuote;
+        int from = Math.max(0, start - 100);
+        int to = Math.min(normalizedPage.length(), start + normalizedQuote.length() + 100);
+        return normalizedPage.substring(from, Math.min(to, from + 1000));
+    }
+
     private void addMatches(List<ExtractedFact> output, UUID extractionId, UUID workspaceId,
                             PageText page, Pattern pattern, String type, Instant now, int limit) {
         Matcher matcher = pattern.matcher(page.text());
@@ -240,7 +322,9 @@ public class DocumentExtractionService {
                                           List<ExtractedFact> facts) {
         return new ExtractionResponse(extraction.getId(), extraction.getDocumentId(), extraction.getStatus(),
                 extraction.getExtractor(), extraction.getExtractedCharacterCount(), extraction.getStartedAt(),
-                extraction.getCompletedAt(), pages.stream().map(this::toResponse).toList(),
+                extraction.getCompletedAt(), extraction.getAiStatus(), extraction.getAiModel(),
+                extraction.getAiInputCharacters(), extraction.getAiFailureReason(),
+                pages.stream().map(this::toResponse).toList(),
                 facts.stream().map(this::toResponse).toList());
     }
 
@@ -263,6 +347,11 @@ public class DocumentExtractionService {
                                String correctedValue, UUID reviewedBy, Instant reviewedAt) { }
     public record ExtractionResponse(UUID id, UUID documentId, ExtractionStatus status, String extractor,
                                      int extractedCharacterCount, Instant startedAt, Instant completedAt,
+                                     AiExtractionStatus aiStatus, String aiModel, int aiInputCharacters,
+                                     String aiFailureReason,
                                      List<PageResponse> pages, List<FactResponse> candidates) { }
     public record ReviewRequest(FactReviewStatus status, String correctedValue) { }
+
+    private record AiRun(AiExtractionStatus status, String model, int inputCharacters, String failureReason,
+                         List<OmniRouteFactExtractor.FactSuggestion> facts) { }
 }
