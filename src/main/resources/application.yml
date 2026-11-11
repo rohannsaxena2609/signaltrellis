@@ -18,6 +18,20 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 11MB
+  ai:
+    openai:
+      base-url: ${SIGNALTRELLIS_AI_BASE_URL:http://localhost:20128}
+      api-key: ${SIGNALTRELLIS_AI_API_KEY:}
+      timeout: PT45S
+      max-retries: 0
+      chat:
+        completions-path: /v1/chat/completions
+        options:
+          model: ${SIGNALTRELLIS_AI_MODEL:auto/best-free}
+          temperature: 0.1
+          max-completion-tokens: 2048
+    retry:
+      max-attempts: 1
 
 server:
   port: ${SERVER_PORT:8080}
@@ -45,7 +59,10 @@ storage:
     directory: ${SIGNALTRELLIS_DOCUMENT_STORAGE:./.data/documents}
 
 signaltrellis:
+  ai:
+    enabled: ${SIGNALTRELLIS_AI_ENABLED:false}
+    model: ${SIGNALTRELLIS_AI_MODEL:auto/best-free}
+    max-input-characters: ${SIGNALTRELLIS_AI_MAX_INPUT_CHARACTERS:20000}
   ocr:
     tesseract-path: ${SIGNALTRELLIS_TESSERACT_PATH:tesseract}
     languages: ${SIGNALTRELLIS_OCR_LANGUAGES:eng}
-
