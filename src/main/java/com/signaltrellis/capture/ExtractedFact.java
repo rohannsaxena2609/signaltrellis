@@ -45,6 +45,11 @@ public class ExtractedFact {
 
     public ExtractedFact(UUID extractionId, UUID workspaceId, String factType, String extractedValue,
                          int sourcePage, String sourceExcerpt, Instant now) {
+        this(extractionId, workspaceId, factType, extractedValue, sourcePage, sourceExcerpt, null, now);
+    }
+
+    public ExtractedFact(UUID extractionId, UUID workspaceId, String factType, String extractedValue,
+                         int sourcePage, String sourceExcerpt, java.math.BigDecimal confidence, Instant now) {
         this.id = UUID.randomUUID();
         this.extractionId = extractionId;
         this.workspaceId = workspaceId;
@@ -52,6 +57,7 @@ public class ExtractedFact {
         this.extractedValue = extractedValue;
         this.sourcePage = sourcePage;
         this.sourceExcerpt = sourceExcerpt;
+        this.confidence = confidence;
         this.reviewStatus = FactReviewStatus.PENDING_REVIEW;
         this.createdAt = now;
     }
