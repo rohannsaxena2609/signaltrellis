@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -32,10 +33,13 @@ public class CaptureController {
 
     private final DocumentService documents;
     private final DocumentExtractionService extractions;
+    private final FactContextLinkService factLinks;
 
-    public CaptureController(DocumentService documents, DocumentExtractionService extractions) {
+    public CaptureController(DocumentService documents, DocumentExtractionService extractions,
+                             FactContextLinkService factLinks) {
         this.documents = documents;
         this.extractions = extractions;
+        this.factLinks = factLinks;
     }
 
     @PostMapping(path = "/capture/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -113,9 +117,27 @@ public class CaptureController {
                 new DocumentExtractionService.ReviewRequest(request.status(), request.correctedValue()));
     }
 
+    @PostMapping("/documents/{documentId}/extraction/facts/{factId}/context-links")
+    public FactContextLinkService.FactContextLinkResponse linkFact(@AuthenticationPrincipal AuthenticatedUser user,
+                                                                   @PathVariable UUID documentId,
+                                                                   @PathVariable UUID factId,
+                                                                   @Valid @RequestBody FactLinkRequest request) {
+        return factLinks.link(user.workspaceId(), user.id(), documentId, factId,
+                new FactContextLinkService.LinkRequest(request.targetType(), request.targetId()));
+    }
+
+    @GetMapping("/documents/{documentId}/extraction/facts/{factId}/context-links")
+    public java.util.List<FactContextLinkService.FactContextLinkResponse> factLinks(
+            @AuthenticationPrincipal AuthenticatedUser user, @PathVariable UUID documentId,
+            @PathVariable UUID factId) {
+        return factLinks.list(user.workspaceId(), documentId, factId);
+    }
+
     public record CategoryRequest(@NotBlank String category) {
     }
 
     public record FactReviewRequest(@NotNull FactReviewStatus status,
                                     @Size(max = 1000) String correctedValue) { }
+
+    public record FactLinkRequest(@NotNull FactContextTargetType targetType, @NotNull UUID targetId) { }
 }
