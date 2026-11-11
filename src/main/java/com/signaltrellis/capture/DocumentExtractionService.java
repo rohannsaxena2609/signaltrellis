@@ -68,6 +68,15 @@ public class DocumentExtractionService {
 
     @Transactional
     public ExtractionResponse extract(UUID workspaceId, UUID documentId) {
+        return extractInternal(workspaceId, documentId, true);
+    }
+
+    @Transactional
+    public ExtractionResponse extractLocally(UUID workspaceId, UUID documentId) {
+        return extractInternal(workspaceId, documentId, false);
+    }
+
+    private ExtractionResponse extractInternal(UUID workspaceId, UUID documentId, boolean allowAi) {
         StoredDocument storedDocument = documents.findForUpdateByIdAndSourceItem_WorkspaceId(documentId, workspaceId)
                 .orElseThrow(DocumentNotFoundException::new);
         DocumentExtraction existing = extractions.findByDocumentIdAndWorkspaceId(documentId, workspaceId)
@@ -79,7 +88,9 @@ public class DocumentExtractionService {
         List<PageText> extractedPages = readPages(storedDocument.getStorageKey(),
                 storedDocument.getDetectedContentType());
         Instant now = clock.instant();
-        AiRun aiRun = runAi(extractedPages);
+        AiRun aiRun = allowAi ? runAi(extractedPages)
+                : new AiRun(AiExtractionStatus.NOT_CONFIGURED, null, 0,
+                "AI extraction disabled for background processing", List.of());
         String extractor = extractedPages.stream().anyMatch(page -> page.method().equals("TESSERACT"))
                 ? "PDFBOX_TESSERACT_LOCAL" : "PDFBOX_TEXT_3.0";
         DocumentExtraction extraction = extractions.save(new DocumentExtraction(documentId, workspaceId, extractor, now));

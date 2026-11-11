@@ -72,6 +72,11 @@ storage:
     directory: ${SIGNALTRELLIS_DOCUMENT_STORAGE:./.data/documents}
 
 signaltrellis:
+  processing:
+    poll-interval: ${SIGNALTRELLIS_PROCESSING_POLL_INTERVAL:PT2S}
+    max-attempts: ${SIGNALTRELLIS_PROCESSING_MAX_ATTEMPTS:5}
+    batch-size: ${SIGNALTRELLIS_PROCESSING_BATCH_SIZE:1}
+    lease: ${SIGNALTRELLIS_PROCESSING_LEASE:PT45M}
   retrieval:
     embeddings-enabled: ${SIGNALTRELLIS_EMBEDDINGS_ENABLED:false}
     embedding-model: ${SIGNALTRELLIS_EMBEDDING_MODEL:gemini/gemini-embedding-2}

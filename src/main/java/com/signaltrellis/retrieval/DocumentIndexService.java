@@ -65,6 +65,15 @@ public class DocumentIndexService {
 
     @Transactional
     public IndexResponse index(UUID workspaceId, UUID documentId) {
+        return indexInternal(workspaceId, documentId, embeddingsEnabled);
+    }
+
+    @Transactional
+    public IndexResponse indexLocally(UUID workspaceId, UUID documentId) {
+        return indexInternal(workspaceId, documentId, false);
+    }
+
+    private IndexResponse indexInternal(UUID workspaceId, UUID documentId, boolean allowEmbeddings) {
         StoredDocument document = documents.findByIdAndSourceItem_WorkspaceId(documentId, workspaceId)
                 .orElseThrow(DocumentNotFoundException::new);
         DocumentExtraction extraction = extractions.findByDocumentIdAndWorkspaceId(documentId, workspaceId)
@@ -81,7 +90,7 @@ public class DocumentIndexService {
             documentChunks = chunks.saveAll(newChunks);
         }
 
-        if (!embeddingsEnabled) {
+        if (!allowEmbeddings) {
             return response(documentId, documentChunks, "DISABLED", "Embeddings are disabled; text chunks are ready");
         }
         EmbeddingModel embeddingModel = embeddingModels.getIfAvailable();
