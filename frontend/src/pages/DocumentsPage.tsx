@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Check, ChevronRight, CircleAlert, Eye, FileText, LoaderCircle, Plus, Search, ShieldCheck, UploadCloud, X } from 'lucide-react'
 import { api, downloadBlob, get, post, query, patch } from '../api'
-import type { DocumentRecord, Extraction, ExtractedFact, Page, ProcessingJob } from '../types'
+import type { DocumentRecord, Entity, Extraction, ExtractedFact, Page, ProcessingJob } from '../types'
 
 type Props = { refreshKey: number; query: string; onQueryChange: (value: string) => void; onChanged: () => void }
 
 export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, onChanged }: Props) {
   const [documents, setDocuments] = useState<DocumentRecord[]>([])
+  const [entities, setEntities] = useState<Entity[]>([])
   const [selected, setSelected] = useState<DocumentRecord | null>(null)
   const [extraction, setExtraction] = useState<Extraction | null>(null)
   const [job, setJob] = useState<ProcessingJob | null>(null)
@@ -20,6 +21,11 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
   const fileInput = useRef<HTMLInputElement>(null)
 
   useEffect(() => setSearch(initialQuery), [initialQuery])
+  useEffect(() => {
+    let active = true
+    get<Page<Entity>>('/context/entities?page=0&size=100').then((page) => { if (active) setEntities(page.content) }).catch(() => undefined)
+    return () => { active = false }
+  }, [])
   useEffect(() => {
     let active = true
     setLoading(true)
@@ -120,6 +126,17 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
     } catch (problem) { setError(problem instanceof Error ? problem.message : 'Review could not be saved.') }
   }
 
+  async function linkFact(fact: ExtractedFact, entityId: string) {
+    if (!selected) return false
+    setError('')
+    try {
+      await post(`/documents/${selected.id}/extraction/facts/${fact.id}/context-links`, { targetType: 'ENTITY', targetId: entityId })
+      setMessage('Reviewed fact linked to the selected context record.')
+      window.setTimeout(() => setMessage(''), 3500)
+      return true
+    } catch (problem) { setError(problem instanceof Error ? problem.message : 'The fact could not be linked.'); return false }
+  }
+
   return (
     <div className="content-page documents-page">
       <div className="page-lead-row"><div><p className="page-lead">Original records stay connected to every extracted fact and citation.</p><div className="trust-line"><ShieldCheck size={14} /> Uploads stay in your private workspace. Local processing makes no model calls.</div></div>
@@ -142,7 +159,7 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
           <div className="document-detail-actions"><button className="button button--quiet button--full" onClick={() => openFile(selected)}><Eye size={15} /> View original</button><button className="button button--primary button--full" onClick={processDocument} disabled={job?.status === 'QUEUED' || job?.status === 'PROCESSING' || job?.status === 'PROCESSED'}><span className={job?.status === 'QUEUED' || job?.status === 'PROCESSING' ? 'spin' : ''}>{job?.status === 'QUEUED' || job?.status === 'PROCESSING' ? <LoaderCircle size={15} /> : <FileText size={15} />}</span>{job?.status === 'QUEUED' || job?.status === 'PROCESSING' ? 'Processing locally…' : job?.status === 'PROCESSED' ? 'Processed' : 'Extract & index'}</button></div>
           {job && <div className="job-status-line"><span className={`status-dot status-dot--${job.status.toLowerCase()}`} /><span>{job.status === 'FAILED' ? job.lastError ?? 'Processing failed' : `${titleCase(job.status)}${job.status === 'PROCESSING' || job.status === 'QUEUED' ? ` · attempt ${job.attemptCount} of ${job.maxAttempts}` : ''}`}</span></div>}
           <div className="facts-section"><div className="detail-section-title"><span>EXTRACTED CANDIDATES</span>{extraction && <span className="evidence-count">{extraction.candidates.length}</span>}</div>
-            {extraction ? extraction.candidates.length ? <div className="fact-list">{extraction.candidates.map((fact) => <FactRow key={fact.id} fact={fact} onReview={reviewFact} />)}</div> : <div className="facts-empty"><Check size={15} /><span>Text extracted. No date or amount candidates were found.</span></div> : <div className="facts-placeholder"><FileText size={18} /><span>Run local extraction to find reviewable dates and amounts.</span></div>}
+            {extraction ? extraction.candidates.length ? <div className="fact-list">{extraction.candidates.map((fact) => <FactRow key={fact.id} fact={fact} entities={entities} onReview={reviewFact} onLink={linkFact} />)}</div> : <div className="facts-empty"><Check size={15} /><span>Text extracted. No date or amount candidates were found.</span></div> : <div className="facts-placeholder"><FileText size={18} /><span>Run local extraction to find reviewable dates and amounts.</span></div>}
           </div>
           <div className="local-processing-note"><ShieldCheck size={14} /><span>This background flow uses local PDF/OCR extraction and lexical indexing. AI and embeddings remain off.</span></div>
         </aside>}
@@ -151,10 +168,14 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
   )
 }
 
-function FactRow({ fact, onReview }: { fact: ExtractedFact; onReview: (fact: ExtractedFact, status: 'CONFIRMED' | 'CORRECTED' | 'REJECTED', correctedValue?: string) => void }) {
+function FactRow({ fact, entities, onReview, onLink }: { fact: ExtractedFact; entities: Entity[]; onReview: (fact: ExtractedFact, status: 'CONFIRMED' | 'CORRECTED' | 'REJECTED', correctedValue?: string) => void; onLink: (fact: ExtractedFact, entityId: string) => Promise<boolean> }) {
   const [correcting, setCorrecting] = useState(false)
   const [value, setValue] = useState(fact.extractedValue)
-  return <div className="fact-row"><div className="fact-row-top"><span className="fact-type">{fact.type.replaceAll('_', ' ')}</span><span className={`fact-review fact-review--${fact.reviewStatus.toLowerCase()}`}>{fact.reviewStatus}</span></div><strong>{fact.correctedValue ?? fact.extractedValue}</strong><blockquote>“{fact.sourceExcerpt}”</blockquote><small>Page {fact.sourcePage}{fact.confidence != null ? ` · ${Math.round(fact.confidence * 100)}% model confidence` : ''}</small>{fact.reviewStatus === 'PENDING' && <>{correcting && <label className="fact-correction">Corrected value<input value={value} onChange={(event) => setValue(event.target.value)} maxLength={1000} autoFocus /></label>}<div className="fact-actions"><button onClick={() => onReview(fact, 'REJECTED')}><X size={12} /> Reject</button>{correcting ? <><button onClick={() => setCorrecting(false)}>Cancel</button><button onClick={() => onReview(fact, 'CORRECTED', value.trim())} disabled={!value.trim() || value.trim() === fact.extractedValue}><Check size={12} /> Save correction</button></> : <><button onClick={() => setCorrecting(true)}>Correct</button><button onClick={() => onReview(fact, 'CONFIRMED')}><Check size={12} /> Confirm</button></>}</div></>}</div>
+  const [entityId, setEntityId] = useState('')
+  const [linked, setLinked] = useState(false)
+  const [linking, setLinking] = useState(false)
+  async function link() { if (!entityId || linked || linking) return; setLinking(true); setLinked(await onLink(fact, entityId)); setLinking(false) }
+  return <div className="fact-row"><div className="fact-row-top"><span className="fact-type">{fact.type.replaceAll('_', ' ')}</span><span className={`fact-review fact-review--${fact.reviewStatus.toLowerCase()}`}>{fact.reviewStatus}</span></div><strong>{fact.correctedValue ?? fact.extractedValue}</strong><blockquote>“{fact.sourceExcerpt}”</blockquote><small>Page {fact.sourcePage}{fact.confidence != null ? ` · ${Math.round(fact.confidence * 100)}% model confidence` : ''}</small>{fact.reviewStatus === 'PENDING' && <>{correcting && <label className="fact-correction">Corrected value<input value={value} onChange={(event) => setValue(event.target.value)} maxLength={1000} autoFocus /></label>}<div className="fact-actions"><button onClick={() => onReview(fact, 'REJECTED')}><X size={12} /> Reject</button>{correcting ? <><button onClick={() => setCorrecting(false)}>Cancel</button><button onClick={() => onReview(fact, 'CORRECTED', value.trim())} disabled={!value.trim() || value.trim() === fact.extractedValue}><Check size={12} /> Save correction</button></> : <><button onClick={() => setCorrecting(true)}>Correct</button><button onClick={() => onReview(fact, 'CONFIRMED')}><Check size={14} /> Confirm</button></>}</div></>}{fact.reviewStatus !== 'PENDING' && fact.reviewStatus !== 'REJECTED' && entities.length > 0 && <div className="fact-link-controls"><select aria-label={`Context record for ${fact.extractedValue}`} value={entityId} onChange={(event) => setEntityId(event.target.value)}><option value="">Link to a context record</option>{entities.map((entity) => <option key={entity.id} value={entity.id}>{entity.name}</option>)}</select><button className="button button--quiet" onClick={link} disabled={!entityId || linked || linking}>{linked ? 'Linked' : linking ? 'Linking…' : 'Link fact'}</button></div>}</div>
 }
 
 function Status({ status }: { status: string }) { return <span className={`status-pill status-pill--${status.toLowerCase()}`}><i />{status.replaceAll('_', ' ')}</span> }
