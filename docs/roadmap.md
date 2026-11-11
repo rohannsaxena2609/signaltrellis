@@ -114,9 +114,22 @@ Automated and real-request behavior testing for these implementation milestones 
 - [ ] Configure OmniRoute and verify assistant tool selection during final verification
 - [ ] Verify MCP initialization, authentication, workspace isolation and approval flow during final verification
 
+## Milestone 10 — Reliable asynchronous processing (implementation in place; verification deferred)
+
+- [x] Add a PostgreSQL-backed transactional processing queue linked to document status changes
+- [x] Add an authenticated enqueue/status API for local document extraction and indexing
+- [x] Run jobs through a scheduled worker that claims rows with database locks and lease expiry
+- [x] Add bounded exponential retries, permanent failure handling and safe failure messages
+- [x] Recover jobs abandoned by a stopped worker after their lease expires
+- [x] Keep background extraction local-only and embedding-free, regardless of AI provider settings
+- [x] Record job outcome counters through Micrometer when a registry is available
+- [ ] Verify concurrent claiming, retries, lease recovery, dead-letter state and workspace isolation during final verification
+- [ ] Add automated worker and failure-recovery tests during final verification
+
+Kafka and Redis remain deferred: PostgreSQL is already the system of record and durable queue for this modular monolith, and there is no separate consumer or cache workload yet.
+
 ## Later milestones
 
-10. Asynchronous processing, outbox, retries and observability where justified.
 11. React + TypeScript dashboard, deployment and portfolio evidence.
 
 Features remain planned until implemented and verified. The GitHub account action and live deployment are not part of this local scaffold.

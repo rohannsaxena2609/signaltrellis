@@ -85,6 +85,14 @@ Planned modules:
 - `signal_history` records detection, reopening, dismissal and resolution with actor and timestamp. Repeated identical evaluations do not append redundant history rows.
 - Recompute currently runs on an authenticated API request. Scheduling, event publication and asynchronous delivery remain later work.
 
+## Asynchronous document processing
+
+- A document processing job row is inserted in the same database transaction that changes the document to `QUEUED`. This PostgreSQL-backed outbox queue is the durable handoff; adding Kafka or Redis is deferred until there is a separate consumer or cache workload.
+- A scheduled worker claims one eligible job using a row lock, records an attempt and a 45-minute lease, then releases the transaction before doing file and OCR work. Expired leases make abandoned jobs claimable again. Attempt numbers fence off stale workers from overwriting a newer attempt's state.
+- Retries use bounded exponential backoff, up to five attempts by default. Invalid documents go straight to terminal `FAILED`; transient failures retry, and only a safe generic error is stored for users. A failed job can be explicitly enqueued again.
+- The background path runs PDFBox/Tesseract extraction and lexical chunk indexing only. It intentionally does not invoke chat or embedding models, even if their interactive API flags are enabled.
+- Micrometer records aggregate completed, retried and failed job counters when a registry is available. No document text or user identifiers are included in those metrics.
+
 ## Assistant tools and MCP
 
 - The assistant uses Spring AI tool calling with an explicit per-request tool set. Tool context carries the authenticated user object outside the model prompt; tools derive all workspace reads from that identity rather than model arguments.

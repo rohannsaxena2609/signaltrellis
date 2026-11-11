@@ -124,6 +124,12 @@ The assistant is disabled by default. To enable its model calls, set `SIGNALTREL
 
 The stateless HTTP MCP endpoint is `/mcp`. Its tool registration is also disabled by default; set `SIGNALTRELLIS_MCP_ENABLED=true` to expose the selected workspace tools. MCP requests require the same JWT bearer token used by the REST API. MCP tools derive workspace scope from that authenticated principal and provide the same read capabilities plus pending reminder proposal preparation. Do not expose the endpoint publicly without an authenticated TLS-protected deployment.
 
+## Asynchronous document processing
+
+`POST /api/v1/documents/{id}/process` enqueues document extraction and lexical indexing and returns `202 Accepted` with a job ID. `GET /api/v1/documents/{id}/process` returns its status, attempt count, next retry time and safe failure reason. Reposting a failed job requeues it. The scheduled worker claims jobs from PostgreSQL with leases, retries transient failures with exponential backoff up to five attempts, and marks invalid or exhausted jobs `FAILED`.
+
+Background jobs use local PDFBox/Tesseract extraction and lexical indexing only. They do not call OmniRoute for LLM extraction or embeddings, even when those interactive features are enabled. Job outcome counters are recorded through Micrometer when a registry is available. Kafka and Redis are not part of this milestone because PostgreSQL already provides the needed durable queue and there is no separate cache or consumer workload.
+
 To stop PostgreSQL:
 
 ```sh
