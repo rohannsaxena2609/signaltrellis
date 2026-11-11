@@ -1,6 +1,7 @@
 package com.signaltrellis.capture;
 
 import com.signaltrellis.identity.AuthenticatedUser;
+import com.signaltrellis.retrieval.DocumentIndexService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -34,12 +35,14 @@ public class CaptureController {
     private final DocumentService documents;
     private final DocumentExtractionService extractions;
     private final FactContextLinkService factLinks;
+    private final DocumentIndexService indexing;
 
     public CaptureController(DocumentService documents, DocumentExtractionService extractions,
-                             FactContextLinkService factLinks) {
+                             FactContextLinkService factLinks, DocumentIndexService indexing) {
         this.documents = documents;
         this.extractions = extractions;
         this.factLinks = factLinks;
+        this.indexing = indexing;
     }
 
     @PostMapping(path = "/capture/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -106,6 +109,12 @@ public class CaptureController {
     public DocumentExtractionService.ExtractionResponse extraction(@AuthenticationPrincipal AuthenticatedUser user,
                                                                     @PathVariable UUID id) {
         return extractions.get(user.workspaceId(), id);
+    }
+
+    @PostMapping("/documents/{id}/index")
+    public DocumentIndexService.IndexResponse index(@AuthenticationPrincipal AuthenticatedUser user,
+                                                     @PathVariable UUID id) {
+        return indexing.index(user.workspaceId(), id);
     }
 
     @PatchMapping("/documents/{documentId}/extraction/facts/{factId}")
