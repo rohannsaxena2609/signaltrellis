@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: signaltrellis
+      POSTGRES_USER: signaltrellis
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD to a strong unique value}
+    volumes:
+      - signaltrellis-deploy-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U signaltrellis -d signaltrellis"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 8080
+      DATABASE_URL: jdbc:postgresql://postgres:5432/signaltrellis
+      DATABASE_USERNAME: signaltrellis
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD to a strong unique value}
+      SIGNALTRELLIS_JWT_SECRET: ${SIGNALTRELLIS_JWT_SECRET:?Set SIGNALTRELLIS_JWT_SECRET to a Base64-encoded key of at least 32 bytes}
+      SIGNALTRELLIS_DOCUMENT_STORAGE: /var/lib/signaltrellis/documents
+      SIGNALTRELLIS_AI_ENABLED: "false"
+      SIGNALTRELLIS_ASSISTANT_ENABLED: "false"
+      SIGNALTRELLIS_EMBEDDINGS_ENABLED: "false"
+      SIGNALTRELLIS_MCP_ENABLED: "false"
+    volumes:
+      - signaltrellis-deploy-documents:/var/lib/signaltrellis/documents
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "${WEB_PORT:-3000}:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  signaltrellis-deploy-postgres:
+  signaltrellis-deploy-documents:
