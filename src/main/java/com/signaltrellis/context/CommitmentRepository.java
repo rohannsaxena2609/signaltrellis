@@ -9,9 +9,12 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface CommitmentRepository extends JpaRepository<Commitment, UUID> {
+
+    Optional<Commitment> findByIdAndWorkspaceId(UUID id, UUID workspaceId);
 
     List<Commitment> findByWorkspaceIdAndStatusAndDueDateBeforeOrderByDueDateAscIdAsc(
             UUID workspaceId, CommitmentStatus status, LocalDate date);

@@ -7,8 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDate;
 import java.util.UUID;
 import java.util.List;
+import java.util.Optional;
 
 public interface LifeEventRepository extends JpaRepository<LifeEvent, UUID> {
+    Optional<LifeEvent> findByIdAndWorkspaceId(UUID id, UUID workspaceId);
     List<LifeEvent> findByWorkspaceIdAndStatusAndEventDateBetweenOrderByEventDateAscIdAsc(
             UUID workspaceId, LifeEventStatus status, LocalDate from, LocalDate to);
 
