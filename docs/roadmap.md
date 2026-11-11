@@ -72,7 +72,7 @@ Automated and real-request behavior testing for these implementation milestones 
 - [ ] Verify approval, idempotency, expiry and workspace-isolation behavior during final verification
 - [ ] Add automated action workflow tests during final verification
 
-## Milestone 7 — Document extraction and human review (local foundation in place; AI/OCR deferred)
+## Milestone 7 — Document extraction and human review (implementation in place; verification deferred)
 
 - [x] Extract per-page text from uploaded PDFs using local Apache PDFBox
 - [x] Persist page-level text with extraction and workspace provenance
@@ -80,7 +80,12 @@ Automated and real-request behavior testing for these implementation milestones 
 - [x] Add human confirm, correct and reject review states with reviewer/timestamp
 - [x] Add authenticated extraction and review endpoints
 - [x] Add local Tesseract OCR for scanned PDF pages and uploaded PNG/JPEG files
-- [ ] Add provider-backed structured LLM extraction after API credentials are configured
+- [x] Add configurable Spring AI OpenAI-compatible client for OmniRoute
+- [x] Extract typed candidate facts with source page and exact-quote validation
+- [x] Keep AI extraction disabled by default, cap request/response size and disable retries
+- [x] Persist AI status, model identifier, input size and safe failure information
+- [x] Add provider-backed structured LLM extraction, enabled only when runtime credentials are configured
+- [ ] Configure the OmniRoute key in a local shell and verify a real model response during final verification
 - [ ] Connect confirmed facts to context graph records
 - [ ] Verify extraction and review behavior and add automated tests during final verification
 

@@ -90,7 +90,21 @@ The current reminder milestone persists an in-app reminder schedule only. It doe
 
 `POST /api/v1/documents/{id}/extract` extracts text locally and returns per-page text plus date and amount candidates with page excerpts. Text-based PDFs use PDFBox; scanned PDF pages and uploaded PNG/JPEG images use the local Tesseract executable. `GET /api/v1/documents/{id}/extraction` retrieves the latest extraction. Use `PATCH /api/v1/documents/{documentId}/extraction/facts/{factId}` with a review status of `CONFIRMED`, `CORRECTED` or `REJECTED`; corrected candidates require `correctedValue`. Candidate values are untrusted suggestions and stay separate from context records until a human confirms them.
 
-The OCR executable path defaults to `tesseract` and can be configured with `SIGNALTRELLIS_TESSERACT_PATH`; languages default to `eng` and can be changed with `SIGNALTRELLIS_OCR_LANGUAGES`. OCR is local and does not call an AI provider. Structured model extraction and context-graph writes are deferred until the AI credentials and later review flow are configured. OCR is limited to 25 pages per request and 40 megapixels per image/page.
+The OCR executable path defaults to `tesseract` and can be configured with `SIGNALTRELLIS_TESSERACT_PATH`; languages default to `eng` and can be changed with `SIGNALTRELLIS_OCR_LANGUAGES`. OCR is local. OCR is limited to 25 pages per request and 40 megapixels per image/page.
+
+Structured fact extraction can use OmniRoute's OpenAI-compatible endpoint. Start OmniRoute separately, then configure the app in the same shell without putting the key in source control:
+
+```sh
+export SIGNALTRELLIS_AI_API_KEY='your-OmniRoute-key'
+export SIGNALTRELLIS_AI_ENABLED=true
+export SIGNALTRELLIS_AI_BASE_URL=http://localhost:20128
+export SIGNALTRELLIS_AI_MODEL=auto/best-free
+mvn spring-boot:run
+```
+
+The OpenAI-compatible chat path is `/v1/chat/completions`; the app sends a maximum of 20,000 text characters and 2,048 completion tokens in one request, and automatic retries are disabled to avoid repeated usage. AI extraction defaults to disabled. `auto/best-free` is selected from the models reported by your OmniRoute instance, but the route's actual availability and provider terms depend on OmniRoute and its connected providers. The request is idempotent for an already extracted document; posting `/extract` again returns the saved result without another model call.
+
+AI output remains a candidate. The app requires an exact source quote on a valid page before saving a candidate, records model and request-size metadata, and still requires human confirmation/correction/rejection. It does not write AI output into the context graph automatically.
 
 To stop PostgreSQL:
 
