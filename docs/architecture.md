@@ -65,6 +65,7 @@ Planned modules:
 - The local PDFBox extractor stores page text and candidate facts separately from the source document. Scanned PDF pages and image documents use a configurable Tesseract executable. Each candidate references an extraction, page number and excerpt, preserving inspectable provenance.
 - Date and amount matches are candidates, not verified facts. They remain pending until a workspace owner confirms, corrects or rejects them; corrections retain the original extracted value and record reviewer and time.
 - OCR remains local. Optional structured extraction uses Spring AI's OpenAI-compatible client against the local OmniRoute endpoint, with the API key supplied through the environment. It is disabled by default, sends one bounded request per document, disables automatic retries and records selected model and input character count. Returned facts must cite an exact quote on a valid source page and remain pending human review; AI output never writes directly to the context graph.
+- A user may explicitly link a confirmed or corrected fact to an existing workspace entity, event, or commitment. The link records fact, target type/id, workspace and actor; the service verifies the target is owned by that workspace. Context records are created and edited through their existing APIs, never implicitly by extraction.
 
 ## Personal context graph and timeline
 

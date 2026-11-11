@@ -106,6 +106,8 @@ The OpenAI-compatible chat path is `/v1/chat/completions`; the app sends a maxim
 
 AI output remains a candidate. The app requires an exact source quote on a valid page before saving a candidate, records model and request-size metadata, and still requires human confirmation/correction/rejection. It does not write AI output into the context graph automatically.
 
+After reviewing a candidate as `CONFIRMED` or `CORRECTED`, link it to an existing context entity, event, or commitment with `POST /api/v1/documents/{documentId}/extraction/facts/{factId}/context-links`, using `{ "targetType": "ENTITY", "targetId": "..." }` (or `EVENT` / `COMMITMENT`). The target must belong to the authenticated workspace. `GET` on the same route returns its source evidence and linked record reference. This associates verified provenance with a record; it does not create or mutate context data.
+
 To stop PostgreSQL:
 
 ```sh

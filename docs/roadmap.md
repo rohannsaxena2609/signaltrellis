@@ -86,7 +86,8 @@ Automated and real-request behavior testing for these implementation milestones 
 - [x] Persist AI status, model identifier, input size and safe failure information
 - [x] Add provider-backed structured LLM extraction, enabled only when runtime credentials are configured
 - [ ] Configure the OmniRoute key in a local shell and verify a real model response during final verification
-- [ ] Connect confirmed facts to context graph records
+- [x] Link confirmed/corrected facts to existing workspace entities, events, and commitments
+- [x] Enforce workspace ownership for linked context records and retain source page evidence in link responses
 - [ ] Verify extraction and review behavior and add automated tests during final verification
 
 ## Later milestones
