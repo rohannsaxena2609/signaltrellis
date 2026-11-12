@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -176,6 +177,13 @@ public class GlobalExceptionHandler {
                         (first, ignored) -> first));
         return error(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", "Request validation failed",
                 request.getRequestURI(), fieldErrors);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleMalformedRequest(HttpMessageNotReadableException exception,
+                                                            HttpServletRequest request) {
+        return error(HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST", "Request body could not be read",
+                request.getRequestURI(), Map.of());
     }
 
     @ExceptionHandler(Exception.class)
