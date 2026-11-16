@@ -73,6 +73,7 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Add authenticated proposal, pending, decision, detail and history APIs
 - [x] Apply action migrations and start the application against local PostgreSQL
 - [x] Verify pending proposals create no reminder, idempotent replay and key conflict handling, approve/reject decisions, scheduled reminder creation only after approval, decision conflicts, history, and workspace isolation with live requests on isolated PostgreSQL
+- [ ] Verify pending-proposal expiry behavior during final verification
 - [ ] Add automated action workflow tests during final verification
 
 ## Milestone 7 — Document extraction and human review (local extraction and review manually verified)
@@ -104,7 +105,7 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Add a synthetic retrieval evaluation set and metric guidance
 - [x] Add a forward migration aligning the document chunk hash column with its entity mapping after startup validation found a `CHAR(64)` / `VARCHAR(64)` mismatch
 - [x] Verify the forward migration and clean application startup on the isolated verification database
-- [ ] Recreate the local PostgreSQL container with pgvector and apply the new migration
+- [x] Start a fresh isolated pgvector PostgreSQL 17 deployment container and apply all 15 migrations, including the forward hash-type migration
 - [x] Verify local chunk indexing, lexical retrieval, page/character citations and workspace isolation with a synthetic PDF on isolated PostgreSQL; embeddings stayed disabled
 - [ ] Enable OmniRoute embeddings and measure retrieval quality during final verification
 
@@ -118,7 +119,8 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Require existing JWT authentication for MCP requests and derive workspace identity from authentication
 - [x] Keep assistant and MCP tools disabled by default; cap tool calls per request
 - [ ] Configure OmniRoute and verify assistant tool selection during final verification
-- [ ] Verify MCP initialization, authentication, workspace isolation and approval flow during final verification
+- [x] Verify unauthenticated MCP requests are rejected and the authenticated assistant endpoint returns its disabled response without calling a model
+- [ ] Verify MCP initialization, authenticated tool calls, workspace isolation and approval flow during final verification
 
 ## Milestone 10 — Reliable asynchronous processing (basic queue workflow manually verified)
 
