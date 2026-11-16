@@ -75,7 +75,7 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Verify pending proposals create no reminder, idempotent replay and key conflict handling, approve/reject decisions, scheduled reminder creation only after approval, decision conflicts, history, and workspace isolation with live requests on isolated PostgreSQL
 - [ ] Add automated action workflow tests during final verification
 
-## Milestone 7 — Document extraction and human review (implementation in place; verification deferred)
+## Milestone 7 — Document extraction and human review (local extraction and review manually verified)
 
 - [x] Extract per-page text from uploaded PDFs using local Apache PDFBox
 - [x] Persist page-level text with extraction and workspace provenance
@@ -91,7 +91,8 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [ ] Configure the OmniRoute key in a local shell and verify a real model response during final verification
 - [x] Link confirmed/corrected facts to existing workspace entities, events, and commitments
 - [x] Enforce workspace ownership for linked context records and retain source page evidence in link responses
-- [ ] Verify extraction and review behavior and add automated tests during final verification
+- [x] Verify local PDF page text and date/amount candidates, disabled AI status, confirm/correct/reject review states, corrected fact linking with source-page evidence, and pending-fact link rejection using a synthetic PDF and live requests
+- [ ] Add automated extraction and review tests during final verification
 
 ## Milestone 8 — Evidence-backed retrieval and evaluation (implementation in place; verification deferred)
 
