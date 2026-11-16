@@ -99,7 +99,7 @@ public class DocumentService {
     public Page<DocumentResponse> search(UUID workspaceId, String query, String category, String processingStatus,
                                          int page, int size) {
         validatePage(page, size);
-        String normalizedQuery = query == null || query.isBlank() ? null : query.trim();
+        String normalizedQuery = query == null || query.isBlank() ? "" : query.trim();
         if (normalizedQuery != null && normalizedQuery.length() > 200) {
             throw new InvalidDocumentException("Search text must be at most 200 characters");
         }
