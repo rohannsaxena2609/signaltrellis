@@ -50,7 +50,7 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Verify duplicate entity rejection, relationship creation/traversal, graph depth validation, cross-workspace isolation, event timeline/upcoming queries, and commitment listing/overdue summary with real requests on isolated PostgreSQL
 - [ ] Add automated context, relationship and workspace-isolation tests
 
-## Milestone 5 — Deterministic consequence signals (implementation in place; verification deferred)
+## Milestone 5 — Deterministic consequence signals (implementation and manual verification complete)
 
 - [x] Add rules for overdue and soon-due commitments, due-date clusters, missed events and approaching events
 - [x] Assign deterministic priorities and explainable rule messages
@@ -60,7 +60,7 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Record detected, reopened, dismissed and resolved transitions in signal history
 - [x] Add authenticated list/filter/detail/evidence/dismiss/resolve/recompute endpoints
 - [x] Apply signal migrations and start the application against local PostgreSQL
-- [ ] Verify rule outcomes and lifecycle transitions during final verification
+- [x] Verify overdue, due-soon, payment-cluster, and approaching-event rules; evidence/history; idempotent recomputation; dismiss/resolve/reopen lifecycle; and cross-workspace isolation with live requests on isolated PostgreSQL
 - [ ] Add automated signal-rule and workspace-isolation tests during final verification
 
 ## Milestone 6 — Approval-controlled reminder actions (implementation in place; verification deferred)
