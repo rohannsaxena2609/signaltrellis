@@ -63,7 +63,7 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Verify overdue, due-soon, payment-cluster, and approaching-event rules; evidence/history; idempotent recomputation; dismiss/resolve/reopen lifecycle; and cross-workspace isolation with live requests on isolated PostgreSQL
 - [ ] Add automated signal-rule and workspace-isolation tests during final verification
 
-## Milestone 6 — Approval-controlled reminder actions (implementation in place; verification deferred)
+## Milestone 6 — Approval-controlled reminder actions (implementation and manual verification complete)
 
 - [x] Add workspace-owned action proposals with idempotency-key request matching
 - [x] Require explicit approve/reject decisions before creating a reminder schedule
@@ -72,7 +72,7 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Expire pending proposals with a scheduled local job
 - [x] Add authenticated proposal, pending, decision, detail and history APIs
 - [x] Apply action migrations and start the application against local PostgreSQL
-- [ ] Verify approval, idempotency, expiry and workspace-isolation behavior during final verification
+- [x] Verify pending proposals create no reminder, idempotent replay and key conflict handling, approve/reject decisions, scheduled reminder creation only after approval, decision conflicts, history, and workspace isolation with live requests on isolated PostgreSQL
 - [ ] Add automated action workflow tests during final verification
 
 ## Milestone 7 — Document extraction and human review (implementation in place; verification deferred)
