@@ -94,7 +94,7 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Verify local PDF page text and date/amount candidates, disabled AI status, confirm/correct/reject review states, corrected fact linking with source-page evidence, and pending-fact link rejection using a synthetic PDF and live requests
 - [ ] Add automated extraction and review tests during final verification
 
-## Milestone 8 — Evidence-backed retrieval and evaluation (implementation in place; verification deferred)
+## Milestone 8 — Evidence-backed retrieval and evaluation (local lexical retrieval manually verified)
 
 - [x] Store overlapping page-aware text chunks with source offsets and content hashes
 - [x] Add PostgreSQL full-text search and pgvector half-precision vector storage/indexing
@@ -105,7 +105,7 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Add a forward migration aligning the document chunk hash column with its entity mapping after startup validation found a `CHAR(64)` / `VARCHAR(64)` mismatch
 - [x] Verify the forward migration and clean application startup on the isolated verification database
 - [ ] Recreate the local PostgreSQL container with pgvector and apply the new migration
-- [ ] Verify indexing, citation offsets, workspace isolation and retrieval quality during final verification
+- [x] Verify local chunk indexing, lexical retrieval, page/character citations and workspace isolation with a synthetic PDF on isolated PostgreSQL; embeddings stayed disabled
 - [ ] Enable OmniRoute embeddings and measure retrieval quality during final verification
 
 ## Milestone 9 — Agentic AI and MCP (implementation in place; verification deferred)
