@@ -47,6 +47,7 @@ public class ContextService {
                                                 int page, int size) {
         validatePage(page, size);
         String normalizedQuery = cleanOptional(query);
+        if (normalizedQuery == null) normalizedQuery = "";
         if (normalizedQuery != null && normalizedQuery.length() > 200) {
             throw new InvalidContextRequestException("Search text must be at most 200 characters");
         }
