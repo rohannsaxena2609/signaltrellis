@@ -25,8 +25,7 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Short-lived signed JWT authentication
 - [x] Account registration creates a personal workspace transactionally
 - [x] Authenticated profile endpoint returns the caller's workspace identity
-- [ ] Unauthorized-access and registration-flow tests
-- [ ] Run against PostgreSQL and verify registration, login and protected-route behavior
+- [x] Verify registration, duplicate-email rejection, login, wrong-password rejection, authenticated profile, unauthenticated access, and separate workspaces with synthetic accounts on the isolated PostgreSQL verification database
 
 ## Milestone 3 — Capture and document lifecycle (implementation in place; verification deferred)
 
