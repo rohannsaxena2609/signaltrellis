@@ -27,7 +27,7 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Authenticated profile endpoint returns the caller's workspace identity
 - [x] Verify registration, duplicate-email rejection, login, wrong-password rejection, authenticated profile, unauthenticated access, and separate workspaces with synthetic accounts on the isolated PostgreSQL verification database
 
-## Milestone 3 — Capture and document lifecycle (implementation in place; verification deferred)
+## Milestone 3 — Capture and document lifecycle (implementation and manual verification complete)
 
 - [x] Upload PDF, PNG and JPEG files with a 10 MB request limit
 - [x] Validate file signatures and matching filename extensions
@@ -36,10 +36,10 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Categorize, search and list unprocessed documents
 - [x] Retrieve metadata and download content with workspace ownership enforced
 - [x] Apply capture migrations and start the application against local PostgreSQL
-- [ ] Verify upload/search/download behavior with real requests
+- [x] Verify PDF, PNG and JPEG uploads, category search/reclassification, metadata and byte-for-byte download behavior with real requests; reject mismatched signatures and oversized files; confirm cross-workspace access is denied on isolated PostgreSQL
 - [ ] Add automated capture and workspace-isolation tests
 
-## Milestone 4 — Context graph, events and commitments (implementation in place; verification deferred)
+## Milestone 4 — Context graph, events and commitments (implementation and manual verification complete)
 
 - [x] Add typed life entities and case-insensitive duplicate prevention within each workspace
 - [x] Add directed entity relationships with database-enforced same-workspace endpoints
@@ -47,7 +47,7 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Add dated life events, timeline and upcoming queries
 - [x] Add commitments with decimal amounts, currency pairing, due dates and open/overdue summary
 - [x] Apply context migrations and start the application against local PostgreSQL
-- [ ] Verify entity isolation, graph traversal, event and commitment APIs with real requests
+- [x] Verify duplicate entity rejection, relationship creation/traversal, graph depth validation, cross-workspace isolation, event timeline/upcoming queries, and commitment listing/overdue summary with real requests on isolated PostgreSQL
 - [ ] Add automated context, relationship and workspace-isolation tests
 
 ## Milestone 5 — Deterministic consequence signals (implementation in place; verification deferred)
