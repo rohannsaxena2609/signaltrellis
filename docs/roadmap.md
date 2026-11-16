@@ -18,7 +18,7 @@
 
 Final verification is now in progress milestone by milestone. Later milestones remain unverified until their checks below are completed.
 
-## Milestone 2 — Identity and security (implementation in place; verification deferred)
+## Milestone 2 — Identity and security (implementation and manual verification complete)
 
 - [x] Registration and login endpoints
 - [x] BCrypt password hashing and password input guard
@@ -135,7 +135,7 @@ Final verification is now in progress milestone by milestone. Later milestones r
 
 Kafka and Redis remain deferred: PostgreSQL is already the system of record and durable queue for this modular monolith, and there is no separate consumer or cache workload yet.
 
-## Milestone 11 — Dashboard, deployment and portfolio groundwork (implementation in place; verification deferred)
+## Milestone 11 — Dashboard and deployment (build and smoke checks complete; remaining verification pending)
 
 - [x] Add the responsive React + TypeScript workspace shell and account screens
 - [x] Connect the dashboard to signals, source documents, commitments, and pending approvals
@@ -144,8 +144,11 @@ Kafka and Redis remain deferred: PostgreSQL is already the system of record and 
 - [x] Add a separate Nginx + API + pgvector PostgreSQL deployment scaffold with persistent data volumes
 - [x] Require deployment database and JWT secrets and default all AI/MCP features off
 - [x] Add frontend/backend build workflow and portfolio walkthrough evidence checklist
-- [ ] Complete manual UI, API, accessibility, workspace isolation, and end-to-end verification for milestones 1–11
-- [ ] Verify container startup, health, persistence and deployment security configuration
+- [x] Smoke-check sign-in and navigation for Overview, Documents, Signals, Commitments, Context graph, Approvals and AI assistant in the browser
+- [x] Verify dashboard list APIs for documents, entities, signals, commitments and approvals; fix nullable search parameters that caused unfiltered document and context lists to fail
+- [ ] Complete accessibility, workspace-isolation UI and end-to-end workflow verification
+- [x] Build API and web Docker images and validate deployment compose configuration
+- [x] Start isolated deployment stack, verify Nginx UI/API health, non-root API user and successful login after API and PostgreSQL restarts; remove the disposable stack and volumes afterward
 - [ ] Capture redacted portfolio screenshots and record actual verification results
 - [ ] Configure and verify OmniRoute calls only during the explicitly planned provider verification session
 
