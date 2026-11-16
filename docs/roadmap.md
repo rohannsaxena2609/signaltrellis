@@ -120,7 +120,7 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [ ] Configure OmniRoute and verify assistant tool selection during final verification
 - [ ] Verify MCP initialization, authentication, workspace isolation and approval flow during final verification
 
-## Milestone 10 — Reliable asynchronous processing (implementation in place; verification deferred)
+## Milestone 10 — Reliable asynchronous processing (basic queue workflow manually verified)
 
 - [x] Add a PostgreSQL-backed transactional processing queue linked to document status changes
 - [x] Add an authenticated enqueue/status API for local document extraction and indexing
@@ -129,7 +129,8 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Recover jobs abandoned by a stopped worker after their lease expires
 - [x] Keep background extraction local-only and embedding-free, regardless of AI provider settings
 - [x] Record job outcome counters through Micrometer when a registry is available
-- [ ] Verify concurrent claiming, retries, lease recovery, dead-letter state and workspace isolation during final verification
+- [x] Verify enqueue and repeat enqueue, workspace-isolated status access, and successful worker extraction/indexing on isolated PostgreSQL; fixed JDBC timestamp binding and lazy source ownership loading found during this check
+- [ ] Verify concurrent claiming, retries, lease recovery and dead-letter state during final verification
 - [ ] Add automated worker and failure-recovery tests during final verification
 
 Kafka and Redis remain deferred: PostgreSQL is already the system of record and durable queue for this modular monolith, and there is no separate consumer or cache workload yet.
