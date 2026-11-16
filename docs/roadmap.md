@@ -11,10 +11,10 @@
 - [x] Publish a GitHub repository
 - [x] Start the service against local PostgreSQL and apply migrations
 - [x] Inspect the OpenAPI page in a browser; Swagger UI rendered the registered API operations
-- [x] Verify `GET /v3/api-docs` returns HTTP 200 and a specification containing 36 API paths
+- [x] Verify `GET /v3/api-docs` returns HTTP 200 and a specification containing 41 API paths on the isolated latest-source app
 - [x] Add and run foundation tests for health responses, malformed request handling, and sanitized unexpected errors (3 passed)
-- [x] Verify live health returns HTTP 200 and invalid registration fields return a structured HTTP 400
-- [ ] Recheck malformed JSON over HTTP after loading the updated handler; the already-running app returned 500 before the fix and was left running
+- [x] Verify live health returns HTTP 200, malformed JSON returns structured HTTP 400, and invalid registration fields return structured HTTP 400
+- [x] Recheck the updated error handler on an isolated latest-source app without changing the existing app process or database
 
 Final verification is now in progress milestone by milestone. Later milestones remain unverified until their checks below are completed.
 
@@ -102,6 +102,8 @@ Final verification is now in progress milestone by milestone. Later milestones r
 - [x] Add authenticated lexical/hybrid retrieval endpoint with page and character citations
 - [x] Keep embedding calls disabled by default and fall back to lexical search
 - [x] Add a synthetic retrieval evaluation set and metric guidance
+- [x] Add a forward migration aligning the document chunk hash column with its entity mapping after startup validation found a `CHAR(64)` / `VARCHAR(64)` mismatch
+- [x] Verify the forward migration and clean application startup on the isolated verification database
 - [ ] Recreate the local PostgreSQL container with pgvector and apply the new migration
 - [ ] Verify indexing, citation offsets, workspace isolation and retrieval quality during final verification
 - [ ] Enable OmniRoute embeddings and measure retrieval quality during final verification
