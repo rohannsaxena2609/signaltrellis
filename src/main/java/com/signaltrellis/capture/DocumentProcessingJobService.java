@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -61,7 +62,7 @@ public class DocumentProcessingJobService {
                     status = 'QUEUED', attempt_count = 0, next_attempt_at = EXCLUDED.next_attempt_at,
                     lease_expires_at = NULL, last_error = NULL, updated_at = EXCLUDED.updated_at
                 WHERE current_job.status = 'FAILED'
-                """, UUID.randomUUID(), documentId, now, now, now);
+                """, UUID.randomUUID(), documentId, Timestamp.from(now), Timestamp.from(now), Timestamp.from(now));
         jdbc.update("""
                 UPDATE app.documents d SET processing_status = CASE job.status
                     WHEN 'QUEUED' THEN 'QUEUED'
