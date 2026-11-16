@@ -21,6 +21,10 @@ public interface StoredDocumentRepository extends JpaRepository<StoredDocument, 
     @EntityGraph(attributePaths = "sourceItem")
     Optional<StoredDocument> findByIdAndSourceItem_WorkspaceId(UUID id, UUID workspaceId);
 
+    @EntityGraph(attributePaths = "sourceItem")
+    @Query("select d from StoredDocument d where d.id = :id")
+    Optional<StoredDocument> findForProcessingById(@Param("id") UUID id);
+
     @Query("""
             select d from StoredDocument d join d.sourceItem s
             where s.workspaceId = :workspaceId

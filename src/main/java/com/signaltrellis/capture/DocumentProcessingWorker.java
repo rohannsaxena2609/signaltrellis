@@ -47,7 +47,8 @@ public class DocumentProcessingWorker {
                 return;
             }
             if (!jobs.markDocumentProcessing(job)) return;
-            StoredDocument document = documents.findById(job.documentId()).orElseThrow(DocumentNotFoundException::new);
+            StoredDocument document = documents.findForProcessingById(job.documentId())
+                    .orElseThrow(DocumentNotFoundException::new);
             var workspaceId = document.getSourceItem().getWorkspaceId();
             extractions.extractLocally(workspaceId, job.documentId());
             indexing.indexLocally(workspaceId, job.documentId());
