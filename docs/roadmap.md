@@ -10,9 +10,13 @@
 - [x] Product and architecture documentation
 - [x] Publish a GitHub repository
 - [x] Start the service against local PostgreSQL and apply migrations
-- [ ] Inspect the OpenAPI page in a browser
+- [x] Inspect the OpenAPI page in a browser; Swagger UI rendered the registered API operations
+- [x] Verify `GET /v3/api-docs` returns HTTP 200 and a specification containing 36 API paths
+- [x] Add and run foundation tests for health responses, malformed request handling, and sanitized unexpected errors (3 passed)
+- [x] Verify live health returns HTTP 200 and invalid registration fields return a structured HTTP 400
+- [ ] Recheck malformed JSON over HTTP after loading the updated handler; the already-running app returned 500 before the fix and was left running
 
-Automated and real-request behavior testing for these implementation milestones is deferred to final verification, per the project workflow.
+Final verification is now in progress milestone by milestone. Later milestones remain unverified until their checks below are completed.
 
 ## Milestone 2 — Identity and security (implementation in place; verification deferred)
 
