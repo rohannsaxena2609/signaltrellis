@@ -3,6 +3,25 @@ import type { AuthResponse } from './types'
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? '/api/v1').replace(/\/$/, '')
 const SESSION_KEY = 'signaltrellis.session.v1'
 
+type StoredSession = AuthResponse & { expiresAt: number }
+let inMemorySession: StoredSession | null = null
+
+function currentMemorySession(): StoredSession | null {
+  if (!inMemorySession || inMemorySession.expiresAt <= Date.now()) {
+    inMemorySession = null
+    return null
+  }
+  return inMemorySession
+}
+
+function removeStoredSession(): void {
+  try {
+    sessionStorage.removeItem(SESSION_KEY)
+  } catch {
+    // Storage may be unavailable in restricted browser contexts.
+  }
+}
+
 export class ApiError extends Error {
   constructor(message: string, readonly status: number) {
     super(message)
@@ -11,27 +30,47 @@ export class ApiError extends Error {
 }
 
 export function readSession(): AuthResponse | null {
+  let raw: string | null
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY)
-    if (!raw) return null
-    const session = JSON.parse(raw) as AuthResponse & { expiresAt: number }
-    if (session.expiresAt <= Date.now()) {
-      sessionStorage.removeItem(SESSION_KEY)
+    raw = sessionStorage.getItem(SESSION_KEY)
+  } catch {
+    return currentMemorySession()
+  }
+
+  if (!raw) return currentMemorySession()
+
+  try {
+    const session = JSON.parse(raw) as StoredSession
+    if (!session.accessToken || !Number.isFinite(session.expiresAt) || session.expiresAt <= Date.now()) {
+      removeStoredSession()
+      inMemorySession = null
       return null
     }
+    inMemorySession = session
     return session
   } catch {
-    sessionStorage.removeItem(SESSION_KEY)
+    removeStoredSession()
+    inMemorySession = null
     return null
   }
 }
 
 export function saveSession(session: AuthResponse): void {
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ ...session, expiresAt: Date.now() + session.expiresInSeconds * 1000 }))
+  const storedSession: StoredSession = {
+    ...session,
+    expiresAt: Date.now() + session.expiresInSeconds * 1000,
+  }
+  inMemorySession = storedSession
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(storedSession))
+  } catch {
+    // Keep the session for this tab; it will be lost on reload.
+  }
 }
 
 export function clearSession(): void {
-  sessionStorage.removeItem(SESSION_KEY)
+  inMemorySession = null
+  removeStoredSession()
 }
 
 type RequestOptions = Omit<RequestInit, 'body'> & { body?: BodyInit | object | null }
