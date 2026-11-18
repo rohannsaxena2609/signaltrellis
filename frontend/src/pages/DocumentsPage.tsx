@@ -19,6 +19,7 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const fileInput = useRef<HTMLInputElement>(null)
+  const selectionRequest = useRef(0)
 
   useEffect(() => setSearch(initialQuery), [initialQuery])
   useEffect(() => {
@@ -39,12 +40,13 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
   useEffect(() => {
     if (!selected || !job || !['QUEUED', 'PROCESSING'].includes(job.status)) return
     let active = true
+    const requestId = selectionRequest.current
     const interval = window.setInterval(() => {
       get<ProcessingJob>(`/documents/${selected.id}/process`).then((next) => {
-        if (!active) return
+        if (!active || selectionRequest.current !== requestId) return
         setJob(next)
         if (next.status === 'PROCESSED') {
-          loadExtraction(selected.id)
+          loadExtraction(selected.id, requestId)
           onChanged()
         }
         if (next.status === 'FAILED') setError(next.lastError ?? 'Processing failed. You can retry the job.')
@@ -54,6 +56,7 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
   }, [selected, job?.status])
 
   async function selectDocument(document: DocumentRecord) {
+    const requestId = ++selectionRequest.current
     setSelected(document)
     setExtraction(null)
     setJob(null)
@@ -61,16 +64,30 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
     setMessage('')
     try {
       const result = await get<Extraction>(`/documents/${document.id}/extraction`)
+      if (selectionRequest.current !== requestId) return
       setExtraction(result)
-      try { setJob(await get<ProcessingJob>(`/documents/${document.id}/process`)) } catch { /* Older documents may not have a job. */ }
+      try {
+        const nextJob = await get<ProcessingJob>(`/documents/${document.id}/process`)
+        if (selectionRequest.current === requestId) setJob(nextJob)
+      } catch { /* Older documents may not have a job. */ }
     } catch {
-      try { setJob(await get<ProcessingJob>(`/documents/${document.id}/process`)) } catch { /* Not queued yet. */ }
+      if (selectionRequest.current !== requestId) return
+      try {
+        const nextJob = await get<ProcessingJob>(`/documents/${document.id}/process`)
+        if (selectionRequest.current === requestId) setJob(nextJob)
+      } catch { /* Not queued yet. */ }
     }
   }
 
-  async function loadExtraction(documentId: string) {
-    try { setExtraction(await get<Extraction>(`/documents/${documentId}/extraction`)) }
-    catch (problem) { setError(problem instanceof Error ? problem.message : 'Extraction could not be loaded.') }
+  async function loadExtraction(documentId: string, requestId: number) {
+    try {
+      const result = await get<Extraction>(`/documents/${documentId}/extraction`)
+      if (selectionRequest.current === requestId) setExtraction(result)
+    } catch (problem) {
+      if (selectionRequest.current === requestId) {
+        setError(problem instanceof Error ? problem.message : 'Extraction could not be loaded.')
+      }
+    }
   }
 
   async function upload(event: ChangeEvent<HTMLInputElement>) {
@@ -154,7 +171,7 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
         </section>
 
         {selected && <aside className="panel document-detail-panel">
-          <div className="document-detail-head"><span className="file-type-icon file-type-icon--large"><FileText size={19} /></span><button className="icon-button" aria-label="Close document" onClick={() => { setSelected(null); setExtraction(null); setJob(null) }}><X size={17} /></button><div><span className="eyebrow">SOURCE RECORD</span><h2>{selected.filename}</h2></div></div>
+          <div className="document-detail-head"><span className="file-type-icon file-type-icon--large"><FileText size={19} /></span><button className="icon-button" aria-label="Close document" onClick={() => { selectionRequest.current += 1; setSelected(null); setExtraction(null); setJob(null) }}><X size={17} /></button><div><span className="eyebrow">SOURCE RECORD</span><h2>{selected.filename}</h2></div></div>
           <div className="document-meta-grid"><div><span>TYPE</span><strong>{selected.contentType.replace('application/', '').replace('image/', '').toUpperCase()}</strong></div><div><span>ADDED</span><strong>{new Date(selected.createdAt).toLocaleDateString()}</strong></div></div>
           <div className="document-detail-actions"><button className="button button--quiet button--full" onClick={() => openFile(selected)}><Eye size={15} /> View original</button><button className="button button--primary button--full" onClick={processDocument} disabled={job?.status === 'QUEUED' || job?.status === 'PROCESSING' || job?.status === 'PROCESSED'}><span className={job?.status === 'QUEUED' || job?.status === 'PROCESSING' ? 'spin' : ''}>{job?.status === 'QUEUED' || job?.status === 'PROCESSING' ? <LoaderCircle size={15} /> : <FileText size={15} />}</span>{job?.status === 'QUEUED' || job?.status === 'PROCESSING' ? 'Processing locally…' : job?.status === 'PROCESSED' ? 'Processed' : 'Extract & index'}</button></div>
           {job && <div className="job-status-line"><span className={`status-dot status-dot--${job.status.toLowerCase()}`} /><span>{job.status === 'FAILED' ? job.lastError ?? 'Processing failed' : `${titleCase(job.status)}${job.status === 'PROCESSING' || job.status === 'QUEUED' ? ` · attempt ${job.attemptCount} of ${job.maxAttempts}` : ''}`}</span></div>}
