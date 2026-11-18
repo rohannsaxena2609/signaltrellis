@@ -7,7 +7,7 @@ type StoredSession = AuthResponse & { expiresAt: number }
 let inMemorySession: StoredSession | null = null
 
 function currentMemorySession(): StoredSession | null {
-  if (!inMemorySession || inMemorySession.expiresAt <= Date.now()) {
+  if (!inMemorySession || !Number.isFinite(inMemorySession.expiresAt) || inMemorySession.expiresAt <= Date.now()) {
     inMemorySession = null
     return null
   }
