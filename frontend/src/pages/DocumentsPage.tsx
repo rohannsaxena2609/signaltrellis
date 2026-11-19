@@ -135,12 +135,19 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
 
   async function reviewFact(fact: ExtractedFact, status: 'CONFIRMED' | 'CORRECTED' | 'REJECTED', correctedValue?: string) {
     if (!selected) return
+    const documentId = selected.id
+    const requestId = selectionRequest.current
     setError('')
     try {
-      await patch(`/documents/${selected.id}/extraction/facts/${fact.id}`, { status, correctedValue })
+      await patch(`/documents/${documentId}/extraction/facts/${fact.id}`, { status, correctedValue })
+      if (selectionRequest.current !== requestId) return
       setMessage(`Candidate ${status.toLowerCase()}.`)
-      await loadExtraction(selected.id)
-    } catch (problem) { setError(problem instanceof Error ? problem.message : 'Review could not be saved.') }
+      await loadExtraction(documentId, requestId)
+    } catch (problem) {
+      if (selectionRequest.current === requestId) {
+        setError(problem instanceof Error ? problem.message : 'Review could not be saved.')
+      }
+    }
   }
 
   async function linkFact(fact: ExtractedFact, entityId: string) {
