@@ -49,6 +49,8 @@ Open the Vite URL printed in the terminal (normally `http://localhost:5173`). Th
 - `POST /api/v1/auth/login` — exchange email and password for a 15 minute bearer token.
 - `GET /api/v1/auth/me` — return the authenticated user's identity and workspace; requires `Authorization: Bearer <token>`.
 
+The dashboard stores the short-lived session in browser `sessionStorage`. If the browser blocks session storage, the session is kept in memory for the current tab so API requests can continue; it is not persisted across a page reload, so the user must sign in again after reloading. Sessions are cleared when the API returns HTTP 401.
+
 Set `SIGNALTRELLIS_JWT_SECRET` to a Base64-encoded key of at least 32 bytes before deployment. The checked-in fallback is only for local development. Passwords use BCrypt; input is limited to 72 UTF-8 bytes to avoid BCrypt's truncation behavior. Account data and workspaces are isolated by UUID ownership; feature endpoints must continue to enforce the token's workspace ID when they are added.
 
 ## Capture and document API
