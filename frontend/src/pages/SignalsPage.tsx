@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Activity, Check, ChevronDown, CircleAlert, Clock3, RefreshCw, ShieldCheck, X } from 'lucide-react'
 import { get, post, query } from '../api'
 import type { Page, Signal, SignalEvidence } from '../types'
@@ -14,8 +14,10 @@ export function SignalsPage({ refreshKey, onChanged }: Props) {
   const [working, setWorking] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const detailRequest = useRef(0)
 
   useEffect(() => {
+    detailRequest.current += 1
     let active = true
     setLoading(true)
     setSelected(null)
@@ -23,13 +25,21 @@ export function SignalsPage({ refreshKey, onChanged }: Props) {
       .then((page) => { if (active) setSignals(page.content) })
       .catch((problem: unknown) => { if (active) setError(problem instanceof Error ? problem.message : 'Signals could not be loaded.') })
       .finally(() => { if (active) setLoading(false) })
-    return () => { active = false }
+    return () => { active = false; detailRequest.current += 1 }
   }, [status, refreshKey])
 
   async function openSignal(signal: Signal) {
+    const requestId = ++detailRequest.current
+    setSelected(null)
     setError('')
-    try { setSelected(await get<SignalDetail>(`/signals/${signal.id}`)) }
-    catch (problem) { setError(problem instanceof Error ? problem.message : 'Signal details could not be loaded.') }
+    try {
+      const detail = await get<SignalDetail>(`/signals/${signal.id}`)
+      if (detailRequest.current === requestId) setSelected(detail)
+    } catch (problem) {
+      if (detailRequest.current === requestId) {
+        setError(problem instanceof Error ? problem.message : 'Signal details could not be loaded.')
+      }
+    }
   }
 
   async function changeSignal(action: 'dismiss' | 'resolve') {
@@ -73,7 +83,7 @@ export function SignalsPage({ refreshKey, onChanged }: Props) {
 
         <aside className="panel signal-detail-panel">
           {selected ? <>
-            <div className="detail-topline"><span className={`priority-label priority-label--${selected.signal.priority.toLowerCase()}`}>{selected.signal.priority} PRIORITY</span><button className="icon-button" aria-label="Close signal details" onClick={() => setSelected(null)}><X size={17} /></button></div>
+            <div className="detail-topline"><span className={`priority-label priority-label--${selected.signal.priority.toLowerCase()}`}>{selected.signal.priority} PRIORITY</span><button className="icon-button" aria-label="Close signal details" onClick={() => { detailRequest.current += 1; setSelected(null) }}><X size={17} /></button></div>
             <h2 className="detail-title">{selected.signal.title}</h2><p className="detail-explanation">{selected.signal.explanation}</p>
             <div className="detail-section"><div className="detail-section-title"><span>WHY THIS MATTERS</span><span className="deterministic-tag"><Activity size={12} /> RULE BASED</span></div><p>This signal was created from your recorded commitments and events. It updates when those records change.</p></div>
             <div className="detail-section"><div className="detail-section-title"><span>SUPPORTING EVIDENCE</span><span className="evidence-count">{selected.evidence.length}</span></div>
