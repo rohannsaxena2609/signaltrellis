@@ -152,13 +152,21 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
 
   async function linkFact(fact: ExtractedFact, entityId: string) {
     if (!selected) return false
+    const documentId = selected.id
+    const requestId = selectionRequest.current
     setError('')
     try {
-      await post(`/documents/${selected.id}/extraction/facts/${fact.id}/context-links`, { targetType: 'ENTITY', targetId: entityId })
+      await post(`/documents/${documentId}/extraction/facts/${fact.id}/context-links`, { targetType: 'ENTITY', targetId: entityId })
+      if (selectionRequest.current !== requestId) return false
       setMessage('Reviewed fact linked to the selected context record.')
       window.setTimeout(() => setMessage(''), 3500)
       return true
-    } catch (problem) { setError(problem instanceof Error ? problem.message : 'The fact could not be linked.'); return false }
+    } catch (problem) {
+      if (selectionRequest.current === requestId) {
+        setError(problem instanceof Error ? problem.message : 'The fact could not be linked.')
+      }
+      return false
+    }
   }
 
   return (
