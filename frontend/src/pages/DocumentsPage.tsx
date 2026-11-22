@@ -113,14 +113,21 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
 
   async function processDocument() {
     if (!selected) return
+    const documentId = selected.id
+    const requestId = selectionRequest.current
     setError('')
     try {
-      const next = await post<ProcessingJob>(`/documents/${selected.id}/process`)
+      const next = await post<ProcessingJob>(`/documents/${documentId}/process`)
+      onChanged()
+      if (selectionRequest.current !== requestId) return
       setJob(next)
       setMessage(next.status === 'PROCESSED' ? 'This document is already processed.' : 'Local extraction and indexing queued. No AI calls will be made.')
-      onChanged()
       window.setTimeout(() => setMessage(''), 4000)
-    } catch (problem) { setError(problem instanceof Error ? problem.message : 'Document could not be queued.') }
+    } catch (problem) {
+      if (selectionRequest.current === requestId) {
+        setError(problem instanceof Error ? problem.message : 'Document could not be queued.')
+      }
+    }
   }
 
   async function openFile(document: DocumentRecord) {
