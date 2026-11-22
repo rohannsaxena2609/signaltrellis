@@ -43,7 +43,7 @@ export function CommitmentsPage({ refreshKey, onChanged }: Props) {
     finally { setSaving(false) }
   }
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = localDateKey()
   const openCount = items.filter((item) => item.status === 'OPEN').length
   const overdueCount = items.filter((item) => item.status === 'OPEN' && item.dueDate < today).length
   const byCurrency = items.filter((item) => item.status === 'OPEN' && item.amount != null).reduce<Record<string, number>>((all, item) => {
@@ -78,10 +78,22 @@ export function CommitmentsPage({ refreshKey, onChanged }: Props) {
 
 function CommitmentRow({ item }: { item: Commitment }) {
   const due = new Date(`${item.dueDate}T00:00:00`)
-  const today = new Date(); today.setHours(0, 0, 0, 0)
-  const diff = Math.ceil((due.getTime() - today.getTime()) / 86400000)
+  const diff = calendarDayNumber(item.dueDate) - calendarDayNumber(localDateKey())
   return <div className="commitment-row"><span className={`commitment-date-box ${item.status === 'OPEN' && diff < 0 ? 'commitment-date-box--overdue' : ''}`}><strong>{due.toLocaleDateString(undefined, { day: '2-digit' })}</strong><small>{due.toLocaleDateString(undefined, { month: 'short' })}</small></span><div className="commitment-row-main"><strong>{item.title}</strong><small>{item.notes || (item.entityId ? 'Linked to a context record' : 'Personal commitment')}</small></div><div className="commitment-amount">{item.amount != null ? formatMoney(item.amount, item.currency ?? 'INR') : <span className="muted-copy">No amount</span>}</div><span className={`commitment-due-label ${item.status === 'OPEN' && diff < 0 ? 'commitment-due-label--overdue' : ''}`}>{item.status === 'OPEN' ? diff < 0 ? `${Math.abs(diff)} days overdue` : diff === 0 ? 'Due today' : `In ${diff} days` : titleCase(item.status)}</span><span className={`status-pill status-pill--${item.status.toLowerCase()}`}><i />{titleCase(item.status)}</span></div>
 }
 function Skeleton() { return <div className="loading-rows table-skeleton">{[0, 1, 2, 3].map((item) => <div className="loading-row" key={item}><span /><i /><i /></div>)}</div> }
+function localDateKey(date = new Date()) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return year + '-' + month + '-' + day
+}
+
+// Compare calendar days, not elapsed milliseconds, so UTC and DST shifts cannot skew due dates.
+function calendarDayNumber(value: string) {
+  const [year, month, day] = value.split('-').map(Number)
+  return Date.UTC(year, month - 1, day) / 86400000
+}
+
 function titleCase(text: string) { return text.toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase()) }
 function formatMoney(amount: number, currency: string) { try { return new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount) } catch { return `${currency} ${amount.toLocaleString()}` } }
