@@ -91,7 +91,10 @@ function localDateKey(date = new Date()) {
 
 // Compare calendar days, not elapsed milliseconds, so UTC and DST shifts cannot skew due dates.
 function calendarDayNumber(value: string) {
-  const [year, month, day] = value.split('-').map(Number)
+  const parts = value.split('-')
+  const year = Number(parts[0])
+  const month = Number(parts[1])
+  const day = Number(parts[2])
   return Date.UTC(year, month - 1, day) / 86400000
 }
 
