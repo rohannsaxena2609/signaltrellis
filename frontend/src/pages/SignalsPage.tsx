@@ -20,6 +20,8 @@ export function SignalsPage({ refreshKey, onChanged }: Props) {
     detailRequest.current += 1
     let active = true
     setLoading(true)
+    setError('')
+    setSignals([])
     setSelected(null)
     get<Page<Signal>>(`/signals${query({ status: status === 'ALL' ? undefined : status, page: 0, size: 50 })}`)
       .then((page) => { if (active) setSignals(page.content) })
