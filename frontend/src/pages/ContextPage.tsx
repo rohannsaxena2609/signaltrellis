@@ -23,8 +23,9 @@ export function ContextPage() {
   useEffect(() => {
     let active = true
     setLoading(true)
+    setError('')
     get<Page<Entity>>(`/context/entities${query({ page: 0, size: 100, query: search })}`)
-      .then((page) => { if (active) { setEntities(page.content); if (!selected && page.content[0]) setSelected(page.content[0]) } })
+      .then((page) => { if (active) { setEntities(page.content); setSelected(page.content[0] ?? null) } })
       .catch((problem: unknown) => { if (active) setError(problem instanceof Error ? problem.message : 'Context could not be loaded.') })
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
