@@ -15,6 +15,7 @@ export function ApprovalsPage({ refreshKey, onChanged }: Props) {
   useEffect(() => {
     let active = true
     setLoading(true)
+    setError('')
     get<Page<ActionProposal>>(`/actions/pending${query({ page: 0, size: 50 })}`)
       .then((page) => { if (active) setItems(page.content) })
       .catch((problem: unknown) => { if (active) setError(problem instanceof Error ? problem.message : 'Approvals could not be loaded.') })
