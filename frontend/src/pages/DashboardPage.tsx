@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import {
   ArrowDownRight, ArrowRight, ArrowUpRight, CalendarDays, CheckCircle2, ChevronRight,
   CircleAlert, FileCheck2, FileText, GitBranch, ShieldCheck, Sparkles, WalletCards,
@@ -43,12 +43,13 @@ export function DashboardPage({ refreshKey, navigate }: Props) {
   }, [refreshKey])
 
   const today = new Date()
-  const inSevenDays = useMemo(() => new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7), [today])
+  const todayKey = localDateKey(today)
+  const todayDay = calendarDayNumber(todayKey)
   const upcoming = commitments.filter((item) => {
-    const due = new Date(`${item.dueDate}T00:00:00`)
-    return due >= new Date(today.getFullYear(), today.getMonth(), today.getDate()) && due <= inSevenDays
+    const dueDay = calendarDayNumber(item.dueDate)
+    return dueDay >= todayDay && dueDay <= todayDay + 7
   }).slice(0, 4)
-  const overdueCount = commitments.filter((item) => new Date(`${item.dueDate}T23:59:59`) < today).length
+  const overdueCount = commitments.filter((item) => item.dueDate < todayKey).length
   const dateLabel = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' }).format(today)
   const greeting = today.getHours() < 12 ? 'Good morning' : today.getHours() < 17 ? 'Good afternoon' : 'Good evening'
 
@@ -82,7 +83,7 @@ export function DashboardPage({ refreshKey, navigate }: Props) {
 
         <section className="panel upcoming-panel">
           <div className="panel-heading"><div><span className="eyebrow">NEXT 7 DAYS</span><h3>Coming up</h3></div><button className="round-link" aria-label="View commitments" onClick={() => navigate('commitments')}><ArrowUpRight size={16} /></button></div>
-          {loading ? <LoadingRows rows={3} /> : upcoming.length ? <div className="upcoming-list">{upcoming.map((item) => <UpcomingRow key={item.id} item={item} />)}</div> : <QuietEmpty icon={<CalendarDays size={20} />} title="Your week is clear" text="Open commitments will appear here as their due dates approach." />}
+          {loading ? <LoadingRows rows={3} /> : upcoming.length ? <div className="upcoming-list">{upcoming.map((item) => <UpcomingRow key={item.id} item={item} today={todayKey} />)}</div> : <QuietEmpty icon={<CalendarDays size={20} />} title="Your week is clear" text="Open commitments will appear here as their due dates approach." />}
           <button className="panel-footer-link" onClick={() => navigate('commitments')}>See all commitments <ChevronRight size={15} /></button>
         </section>
       </div>
@@ -111,9 +112,9 @@ function SignalRow({ signal, onClick }: { signal: Signal; onClick: () => void })
   return <button className="signal-row" onClick={onClick}><span className={`priority-mark priority-mark--${signal.priority.toLowerCase()}`} /><span className="signal-row-copy"><strong>{signal.title}</strong><small>{signal.explanation}</small></span><span className={`priority-label priority-label--${signal.priority.toLowerCase()}`}>{signal.priority}</span><ChevronRight size={15} className="row-chevron" /></button>
 }
 
-function UpcomingRow({ item }: { item: Commitment }) {
+function UpcomingRow({ item, today }: { item: Commitment; today: string }) {
   const due = new Date(`${item.dueDate}T00:00:00`)
-  const diff = Math.ceil((due.getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000)
+  const diff = calendarDayNumber(item.dueDate) - calendarDayNumber(today)
   return <div className="upcoming-row"><span className={`due-date-chip ${diff < 0 ? 'due-date-chip--overdue' : ''}`}><strong>{due.toLocaleDateString(undefined, { day: '2-digit' })}</strong><small>{due.toLocaleDateString(undefined, { month: 'short' })}</small></span><span className="upcoming-copy"><strong>{item.title}</strong><small>{item.amount != null ? formatMoney(item.amount, item.currency ?? 'INR') : 'Open commitment'}</small></span><span className={`due-label ${diff < 0 ? 'due-label--overdue' : ''}`}>{diff < 0 ? `${Math.abs(diff)}d overdue` : diff === 0 ? 'Today' : `${diff}d`}</span></div>
 }
 
@@ -127,6 +128,22 @@ function QuietEmpty({ icon, title, text }: { icon: ReactNode; title: string; tex
 
 function LoadingRows({ rows = 3 }: { rows?: number }) {
   return <div className="loading-rows">{Array.from({ length: rows }, (_, index) => <div className="loading-row" key={index}><span /><i /><i /></div>)}</div>
+}
+
+function localDateKey(date = new Date()) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return year + '-' + month + '-' + day
+}
+
+// Compare date-only values as calendar days, avoiding DST and end-of-day millisecond errors.
+function calendarDayNumber(value: string) {
+  const parts = value.split('-')
+  const year = Number(parts[0])
+  const month = Number(parts[1])
+  const day = Number(parts[2])
+  return Date.UTC(year, month - 1, day) / 86400000
 }
 
 function formatMoney(amount: number, currency: string) {
