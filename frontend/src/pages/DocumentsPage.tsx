@@ -30,6 +30,7 @@ export function DocumentsPage({ refreshKey, query: initialQuery, onQueryChange, 
   useEffect(() => {
     let active = true
     setLoading(true)
+    setError('')
     get<Page<DocumentRecord>>(`/documents${query({ query: search.trim() || undefined, category: category || undefined, status: status || undefined, page: 0, size: 50 })}`)
       .then((page) => { if (active) setDocuments(page.content) })
       .catch((problem: unknown) => { if (active) setError(problem instanceof Error ? problem.message : 'Documents could not be loaded.') })
