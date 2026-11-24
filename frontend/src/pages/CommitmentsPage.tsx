@@ -99,4 +99,4 @@ function calendarDayNumber(value: string) {
 }
 
 function titleCase(text: string) { return text.toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase()) }
-function formatMoney(amount: number, currency: string) { try { return new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount) } catch { return `${currency} ${amount.toLocaleString()}` } }
+function formatMoney(amount: number, currency: string) { try { return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount) } catch { return `${currency} ${amount.toLocaleString()}` } }
