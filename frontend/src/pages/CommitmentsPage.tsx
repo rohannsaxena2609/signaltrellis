@@ -22,6 +22,7 @@ export function CommitmentsPage({ refreshKey, onChanged }: Props) {
   useEffect(() => {
     let active = true
     setLoading(true)
+    setError('')
     get<Page<Commitment>>(`/commitments${query({ status: status === 'ALL' ? undefined : status, page: 0, size: 100 })}`)
       .then((page) => { if (active) setItems(page.content) })
       .catch((problem: unknown) => { if (active) setError(problem instanceof Error ? problem.message : 'Commitments could not be loaded.') })
