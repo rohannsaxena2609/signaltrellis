@@ -34,6 +34,7 @@ export function ContextPage() {
   useEffect(() => {
     if (!selected) { setGraph(null); return }
     let active = true
+    setError('')
     get<Graph>(`/context/entities/${selected.id}/connections${query({ depth: 2, limit: 50 })}`)
       .then((result) => { if (active) setGraph(result) })
       .catch((problem: unknown) => { if (active) setError(problem instanceof Error ? problem.message : 'Connections could not be loaded.') })
