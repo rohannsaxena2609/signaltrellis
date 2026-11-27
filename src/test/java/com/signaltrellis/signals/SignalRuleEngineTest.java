@@ -108,6 +108,18 @@ class SignalRuleEngineTest {
         assertEquals(160, candidate.title().length());
     }
 
+    @Test
+    void truncatesGeneratedCommitmentTitlesThatExceedTheSupportedLength() {
+        Commitment longTitle = commitment("x".repeat(161), TODAY.plusDays(2));
+
+        SignalCandidate candidate = engine.evaluate(
+                List.of(), List.of(longTitle), List.of(), List.of(), TODAY
+        ).get(0);
+
+        assertEquals(160, candidate.title().length());
+        assertEquals("x".repeat(160), candidate.title());
+    }
+
     private Commitment commitment(String title, LocalDate dueDate) {
         return new Commitment(WORKSPACE_ID, null, title, null, null, dueDate, null);
     }
