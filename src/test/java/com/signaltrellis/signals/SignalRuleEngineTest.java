@@ -76,6 +76,25 @@ class SignalRuleEngineTest {
     }
 
     @Test
+    void clustersCommitmentsAtThreeDayGapsButNotFourDayGaps() {
+        Commitment first = commitment("First", TODAY.plusDays(1));
+        Commitment threeDaysLater = commitment("Three days later", TODAY.plusDays(4));
+        Commitment fourDaysLater = commitment("Four days later", TODAY.plusDays(5));
+
+        List<SignalCandidate> threeDayGap = engine.evaluate(
+                List.of(), List.of(), List.of(first, threeDaysLater), List.of(), TODAY
+        );
+        List<SignalCandidate> fourDayGap = engine.evaluate(
+                List.of(), List.of(), List.of(first, fourDaysLater), List.of(), TODAY
+        );
+
+        assertEquals(1, threeDayGap.stream()
+                .filter(candidate -> candidate.type() == SignalType.PAYMENT_CLUSTER).count());
+        assertEquals(0, fourDayGap.stream()
+                .filter(candidate -> candidate.type() == SignalType.PAYMENT_CLUSTER).count());
+    }
+
+    @Test
     void assignsEventPrioritiesAndMarksPastEventsAsMissed() {
         LifeEvent yesterday = event("Yesterday", TODAY.minusDays(1));
         LifeEvent today = event("Today", TODAY);
